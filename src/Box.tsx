@@ -260,6 +260,8 @@ export function Box(props: BoxProps) {
   return (
     <BoxContext.Provider value={value}>
       <div
+        data-bc-kind={kind}
+        data-bc-name={props.name}
         onClick={handleClick}
         onScroll={handleScroll}
         style={{

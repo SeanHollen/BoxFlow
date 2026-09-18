@@ -285,6 +285,8 @@ function IntrinsicText(props: IntrinsicTextProps) {
     <BoxContext.Provider value={value}>
       <div
         ref={ref}
+        data-bc-kind="text"
+        data-bc-name={props.name}
         onClick={handleClick}
         style={{
           ...style,

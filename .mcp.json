@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "boxcomponents-layout": {
+      "command": "node",
+      "args": ["mcp/server.mjs"]
+    }
+  }
+}

@@ -54,7 +54,7 @@ function CurrentTab({ tab }: { tab: Tab }) {
 export function App() {
   const [tab, setTab] = useState<Tab>("demos");
   return (
-    <BoxRoot debug minSize={{ x: 1160, y: 0 }} style={{ backgroundColor: "#fafafa" }}>
+    <BoxRoot debug inspect minSize={{ x: 1160, y: 0 }} style={{ backgroundColor: "#fafafa" }}>
       <TabBar tab={tab} onSelect={setTab} />
       <CurrentTab tab={tab} />
     </BoxRoot>

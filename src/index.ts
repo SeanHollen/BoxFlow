@@ -1,7 +1,9 @@
 export { Box } from "./Box";
 export type { BoxBaseProps, BoxProps } from "./Box";
 export { BoxRoot } from "./BoxRoot";
-export type { BoxRootProps } from "./BoxRoot";
+export type { BoxRootProps, InspectOptions } from "./BoxRoot";
+export { buildLayoutSnapshot, buildLayoutTree } from "./inspect";
+export type { InspectNode, InspectSnapshot } from "./inspect";
 export { Text } from "./Text";
 export type { TextProps, TextSize } from "./Text";
 export { Image } from "./Image";

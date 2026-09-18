@@ -438,6 +438,7 @@ export function Recipes() {
       <Text
         position={{ x: 24, y: 34 }}
         size={{ x: Math.max(200, width - 416) }}
+        overflow={{ x: "ellipsis" }}
         font={{ size: 12, color: "#5f6368" }}
       >
         {`Familiar CSS patterns rebuilt with coordinates — each card names the CSS it replaces. The cards themselves flow via <Wrap> (CSS: grid auto-flow).`}

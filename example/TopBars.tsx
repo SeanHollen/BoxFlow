@@ -19,6 +19,7 @@ export function TopBars() {
       <Text
         position={{ x: 24, y: 11 }}
         size={{ x: Math.max(200, width - 416) }}
+        overflow={{ x: "ellipsis" }}
         font={{ size: 11, color: "#80868b" }}
       >
         {`top bars: sized from the root via useParentBoxProps(), second half attached with stackMode="horizontal"`}

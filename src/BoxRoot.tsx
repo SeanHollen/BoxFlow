@@ -1,7 +1,8 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { BoxContext, useChildRects } from "./context";
 import { DebugProvider } from "./debug";
+import { buildLayoutSnapshot } from "./inspect";
 import {
   ZERO_VEC,
   childTotalsFromRects,
@@ -11,9 +12,15 @@ import {
 } from "./layout";
 import type { BoxOverflow, SizeSpec, Vec2, ZSort } from "./types";
 
+export interface InspectOptions {
+  url?: string;
+  intervalMs?: number;
+}
+
 export interface BoxRootProps {
   style?: CSSProperties;
   debug?: boolean;
+  inspect?: boolean | InspectOptions;
   zSort?: ZSort;
   overflow?: BoxOverflow;
   minSize?: SizeSpec;
@@ -21,10 +28,12 @@ export interface BoxRootProps {
 }
 
 const DEFAULT_ROOT_OVERFLOW: BoxOverflow = { x: "auto", y: "auto" };
+const DEFAULT_INSPECT_URL = "http://localhost:4848/layout";
 
 export function BoxRoot({
   style,
   debug = false,
+  inspect = false,
   zSort,
   overflow = DEFAULT_ROOT_OVERFLOW,
   minSize,
@@ -34,6 +43,41 @@ export function BoxRoot({
   const [size, setSize] = useState<Vec2 | undefined>(undefined);
   const { childRects, childZ, registerChild, unregisterChild, registerZ, unregisterZ } =
     useChildRects();
+
+  const inspectUrl =
+    typeof inspect === "object" ? (inspect.url ?? DEFAULT_INSPECT_URL) : DEFAULT_INSPECT_URL;
+  const inspectInterval = typeof inspect === "object" ? (inspect.intervalMs ?? 500) : 500;
+  const inspectOn = inspect !== false;
+
+  useEffect(() => {
+    if (!inspectOn) return;
+    const snapshot = () => (ref.current ? buildLayoutSnapshot(ref.current) : undefined);
+    (window as unknown as Record<string, unknown>).__boxcomponentsTree = snapshot;
+    let lastSent = "";
+    const timer = setInterval(() => {
+      const current = snapshot();
+      if (!current) return;
+      const body = JSON.stringify(current);
+      const comparable = JSON.stringify(current.tree);
+      if (comparable === lastSent) return;
+      void (async () => {
+        try {
+          await fetch(inspectUrl, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body,
+          });
+          lastSent = comparable;
+        } catch {
+          // inspector server not running yet; retry on the next tick
+        }
+      })();
+    }, inspectInterval);
+    return () => {
+      clearInterval(timer);
+      delete (window as unknown as Record<string, unknown>).__boxcomponentsTree;
+    };
+  }, [inspectOn, inspectUrl, inspectInterval]);
 
   useLayoutEffect(() => {
     const el = ref.current;

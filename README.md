@@ -208,6 +208,19 @@ Off by default. With `debug` on, **Ctrl/Cmd+Shift+D** toggles an inspector panel
 
 Overrides are validated (bad JSON or wrong shapes show an inline error and change nothing), live only in memory, and never touch your code — reload and they're gone. A function-form `size` shows as `"(function)"` in the snapshot; applying it unchanged keeps the function, and replacing it with a concrete value overrides it.
 
+## Layout inspection (for agents)
+
+```tsx
+<BoxRoot inspect>...</BoxRoot>
+```
+
+Off by default, toggled like `debug`. With `inspect` on, the page continuously snapshots its layout as a JSON tree — every `Box`/`Text`, nested, with the exact corner coordinates of each rectangle (`topLeft`/`topRight`/`bottomRight`/`bottomLeft`, relative to the `BoxRoot` origin, read from the live DOM so it is ground truth, not intent). Two consumers:
+
+- **`window.__boxcomponentsTree()`** — returns the current snapshot on demand, for agents driving the browser directly.
+- **The layout MCP server** (`mcp/server.mjs`, registered in `.mcp.json` so agents in this repo get it automatically). The page POSTs changed snapshots to it (default `http://localhost:4848/layout`, configurable via `inspect={{ url, intervalMs }}`); the server exposes two tools: `layout_tree` (the full latest tree) and `find_box` (matches against `name` props — another reason to name your boxes). If no snapshot has arrived, the tools say so instead of guessing.
+
+Coordinates are current *visual* positions (scrolled content reports where it is now), rounded to 2 decimals for stable diffs.
+
 ## How positioning works
 
 Each `Box` renders a `position: absolute` div. CSS resolves absolute coordinates against the nearest *positioned* ancestor — and because every `Box` is itself absolutely positioned, each `Box` is the containing block for the boxes inside it. The coordinate chain therefore follows the `Box` nesting with no extra wrappers. `BoxRoot` is `position: relative` to anchor the outermost boxes.
