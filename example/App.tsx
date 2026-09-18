@@ -14,9 +14,9 @@ function Demos() {
   return (
     <>
       <TopBars />
-      <Playfield />
-      <CenteredCard />
-      <AutoPanel />
+      <Playfield position={{ x: 24, y: 56 }} />
+      <AutoPanel position={{ x: 428, y: 56 }} />
+      <CenteredCard position={{ x: 796, y: 56 }} />
       <CornerBadge />
     </>
   );
@@ -54,7 +54,7 @@ function CurrentTab({ tab }: { tab: Tab }) {
 export function App() {
   const [tab, setTab] = useState<Tab>("demos");
   return (
-    <BoxRoot debug style={{ backgroundColor: "#fafafa" }}>
+    <BoxRoot debug minSize={{ x: 1160, y: 0 }} style={{ backgroundColor: "#fafafa" }}>
       <TabBar tab={tab} onSelect={setTab} />
       <CurrentTab tab={tab} />
     </BoxRoot>

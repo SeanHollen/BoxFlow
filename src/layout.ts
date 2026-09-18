@@ -3,6 +3,7 @@ import type {
   AxisSizeSpec,
   BoxBorder,
   BoxOverflow,
+  ChildAnchor,
   ChildRect,
   OverflowMode,
   Pivot,
@@ -106,29 +107,64 @@ export function sizeNeedsChildTotals(size: SizeSpec): boolean {
   return size.x === "childTotals" || size.y === "childTotals";
 }
 
+export function anchorFromFraction(fraction: number): ChildAnchor {
+  if (fraction === 0) return "start";
+  if (fraction === 1) return "end";
+  return "center";
+}
+
+function overlaps(aStart: number, aEnd: number, bStart: number, bEnd: number): boolean {
+  return aStart < bEnd && bStart < aEnd;
+}
+
 export function childTotalsFromRects(rects: ReadonlyMap<string, ChildRect>): Vec2 {
   if (rects.size === 0) return { x: 0, y: 0 };
-  let minLeft = Infinity;
-  let minTop = Infinity;
-  let maxRight = -Infinity;
-  let maxBottom = -Infinity;
-  for (const r of rects.values()) {
-    minLeft = Math.min(minLeft, r.left);
-    minTop = Math.min(minTop, r.top);
-    maxRight = Math.max(maxRight, r.right);
-    maxBottom = Math.max(maxBottom, r.bottom);
+  const list = [...rects.values()];
+  let x = 0;
+  let y = 0;
+  for (const rect of list) {
+    const reachX = rect.reachX ?? rect.right;
+    const reachY = rect.reachY ?? rect.bottom;
+    x = Math.max(x, reachX);
+    y = Math.max(y, reachY);
+    if ((rect.anchorX ?? "start") === "start") {
+      for (const other of list) {
+        if (other === rect || other.anchorX !== "end") continue;
+        if (!overlaps(rect.top, rect.bottom, other.top, other.bottom)) continue;
+        x = Math.max(x, reachX + (other.reachX ?? 0));
+      }
+    }
+    if ((rect.anchorY ?? "start") === "start") {
+      for (const other of list) {
+        if (other === rect || other.anchorY !== "end") continue;
+        if (!overlaps(rect.left, rect.right, other.left, other.right)) continue;
+        y = Math.max(y, reachY + (other.reachY ?? 0));
+      }
+    }
   }
-  return { x: maxRight - minLeft, y: maxBottom - minTop };
+  return { x, y };
+}
+
+export function childReach(
+  anchor: ChildAnchor,
+  nearEdge: number,
+  size: number,
+  inner: number,
+): number {
+  if (anchor === "start") return nearEdge + size;
+  if (anchor === "end") return inner - nearEdge;
+  return size;
 }
 
 export function resolvedAxis(value: AxisSizeSpec, fallback = 0): number {
   return typeof value === "number" ? value : fallback;
 }
 
-const OVERFLOW_CSS: Record<OverflowMode, "visible" | "hidden" | "scroll"> = {
+const OVERFLOW_CSS: Record<OverflowMode, "visible" | "hidden" | "scroll" | "auto"> = {
   visible: "visible",
   clip: "hidden",
   scrollbar: "scroll",
+  auto: "auto",
   ellipsis: "hidden",
 };
 
@@ -158,8 +194,8 @@ export function overflowToCss(overflow: BoxOverflow | undefined): CSSProperties 
   return {
     overflowX: OVERFLOW_CSS[x],
     overflowY: OVERFLOW_CSS[y],
-    overscrollBehaviorX: x === "scrollbar" ? "contain" : undefined,
-    overscrollBehaviorY: y === "scrollbar" ? "contain" : undefined,
+    overscrollBehaviorX: x === "scrollbar" || x === "auto" ? "contain" : undefined,
+    overscrollBehaviorY: y === "scrollbar" || y === "auto" ? "contain" : undefined,
     textOverflow: x === "ellipsis" ? "ellipsis" : undefined,
     whiteSpace: x === "ellipsis" ? "nowrap" : undefined,
   };

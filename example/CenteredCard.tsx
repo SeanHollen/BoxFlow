@@ -1,4 +1,5 @@
 import { Box, Text, resolvedAxis, useParentBoxProps, useParentScroll } from "../src/index";
+import type { Vec2 } from "../src/index";
 
 const ITEMS = Array.from({ length: 30 }, (_, i) => `Row ${i + 1}`);
 
@@ -14,7 +15,7 @@ function CardHeader() {
       style={{ backgroundColor: "#fff", borderRadius: "8px 8px 0 0" }}
     >
       <Text position={{ x: 12, y: 12 }} font={{ size: 15, weight: 600, color: "#202124" }}>
-        {`Scrollable card — anchoring & overflow`}
+        {`Scrollable card — overflow & sticky`}
       </Text>
       <Text position={{ x: 12, y: 34 }} font={{ size: 11, color: "#80868b" }}>
         {`sticky header via useParentScroll() and zValue; rows scroll beneath`}
@@ -51,12 +52,11 @@ function CardRows() {
   );
 }
 
-export function CenteredCard() {
+export function CenteredCard({ position }: { position: Vec2 }) {
   return (
     <Box
       name="card"
-      pivot={{ from: "centerRight", to: "centerRight" }}
-      position={{ x: -24, y: 0 }}
+      position={position}
       size={{ x: 320, y: 400 }}
       overflow={{ x: "clip", y: "scrollbar" }}
       border={{ width: 1, color: "#e0e0e0" }}

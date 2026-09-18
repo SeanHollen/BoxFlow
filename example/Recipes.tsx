@@ -20,7 +20,7 @@ function Recipe({
   return (
     <Box
       position={position}
-      size={(_xt, yt) => ({ x: width, y: yt + 22 })}
+      size={(_xt, yt) => ({ x: width, y: yt + 12 })}
       border={{ width: 1, color: "#e0e0e0" }}
       style={{ backgroundColor: "#fff", borderRadius: "8px" }}
     >
@@ -298,7 +298,7 @@ function BadgeDemo() {
       <Box
         stackMode="verticalReverse"
         position={{ x: 0, y: -8 }}
-        size={(xt, yt) => ({ x: xt + 12, y: yt + 8 })}
+        size={(xt, yt) => ({ x: xt + 6, y: yt + 4 })}
         style={{ backgroundColor: "#202124", borderRadius: "4px" }}
       >
         <Text position={{ x: 6, y: 4 }} font={{ size: 10, color: "#fff" }}>
@@ -435,7 +435,11 @@ export function Recipes() {
   const height = resolvedAxis(size.y);
   return (
     <>
-      <Text position={{ x: 24, y: 34 }} font={{ size: 12, color: "#5f6368" }}>
+      <Text
+        position={{ x: 24, y: 34 }}
+        size={{ x: Math.max(200, width - 416) }}
+        font={{ size: 12, color: "#5f6368" }}
+      >
         {`Familiar CSS patterns rebuilt with coordinates — each card names the CSS it replaces. The cards themselves flow via <Wrap> (CSS: grid auto-flow).`}
       </Text>
       <Box

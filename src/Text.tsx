@@ -6,15 +6,18 @@ import { BoxContext, useBoxContext, useChildRects } from "./context";
 import { DebugContext, debugOutline, snapshotProps } from "./debug";
 import {
   ZERO_VEC,
+  anchorFromFraction,
   attachFor,
   borderToCss,
+  childReach,
   computeZRanks,
   fontToCss,
   overflowToCss,
   pivotFraction,
+  previousRect,
 } from "./layout";
 import { fontBaselineOffset } from "./metrics";
-import type { BoxContextValue, TextFont, Vec2 } from "./types";
+import type { BoxContextValue, ChildAnchor, TextFont, Vec2 } from "./types";
 
 export interface TextSize {
   x?: number;
@@ -159,6 +162,20 @@ function IntrinsicText(props: IntrinsicTextProps) {
   const rectLeft = left - own.x * width;
   const rectTop = top - own.y * height;
 
+  const relative = relativeTo ?? (stackMode ? "siblings" : "parent");
+  const predecessor = relative === "siblings" ? previousRect(parent.childRects, id) : undefined;
+  let anchorX: ChildAnchor;
+  let anchorY: ChildAnchor;
+  if (relative === "siblings") {
+    anchorX = predecessor?.anchorX ?? "start";
+    anchorY = predecessor?.anchorY ?? "start";
+  } else {
+    anchorX = anchorFromFraction(anchor.x);
+    anchorY = anchorFromFraction(anchor.y);
+  }
+  const reachX = childReach(anchorX, rectLeft, width, parent.resolvedInnerSize.x);
+  const reachY = childReach(anchorY, rectTop, height, parent.resolvedInnerSize.y);
+
   const { registerChild: parentRegister, unregisterChild: parentUnregister } = parent;
   useLayoutEffect(() => {
     parentRegister(id, {
@@ -166,8 +183,12 @@ function IntrinsicText(props: IntrinsicTextProps) {
       top: rectTop,
       right: rectLeft + width,
       bottom: rectTop + height,
+      anchorX,
+      anchorY,
+      reachX,
+      reachY,
     });
-  }, [id, parentRegister, rectLeft, rectTop, width, height]);
+  }, [id, parentRegister, rectLeft, rectTop, width, height, anchorX, anchorY, reachX, reachY]);
   useLayoutEffect(() => () => parentUnregister(id), [id, parentUnregister]);
 
   const { registerZ: parentRegisterZ, unregisterZ: parentUnregisterZ } = parent;

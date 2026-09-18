@@ -34,6 +34,48 @@ describe("BoxRoot", () => {
     );
     expect(screen.getByTestId("probe").textContent).toBe("800,600");
   });
+
+  it("defaults to auto overflow, overridable", () => {
+    const view = render(<BoxRoot />);
+    const root = view.container.firstElementChild as HTMLElement;
+    expect(root.style.overflowX).toBe("auto");
+    const clipped = render(<BoxRoot overflow={{ x: "clip", y: "clip" }} />);
+    const clippedRoot = clipped.container.firstElementChild as HTMLElement;
+    expect(clippedRoot.style.overflowX).toBe("hidden");
+  });
+
+  it("floors the anchor space with minSize while measuring smaller", () => {
+    render(
+      <BoxRoot minSize={{ x: 1200, y: 0 }}>
+        <SizeProbe />
+      </BoxRoot>,
+    );
+    expect(screen.getByTestId("probe").textContent).toBe("1200,600");
+  });
+});
+
+describe("minSize", () => {
+  it("floors the coordinate space without growing the visual box", () => {
+    render(
+      <BoxRoot>
+        <Box position={{ x: 0, y: 0 }} size={{ x: 100, y: 50 }} minSize={{ x: 300, y: 50 }}>
+          <Box
+            pivot={{ from: "topRight", to: "topRight" }}
+            position={{ x: 0, y: 0 }}
+            size={{ x: 40, y: 20 }}
+          >
+            <span data-testid="content" />
+          </Box>
+          <SizeProbe />
+        </Box>
+      </BoxRoot>,
+    );
+    const outer = screen.getByTestId("content").parentElement?.parentElement;
+    const inner = screen.getByTestId("content").parentElement;
+    expect(outer?.style.width).toBe("100px");
+    expect(inner?.style.left).toBe("260px");
+    expect(screen.getByTestId("probe").textContent).toBe("300,50");
+  });
 });
 
 describe("Box", () => {
@@ -167,8 +209,8 @@ describe("child-driven sizing", () => {
       </BoxRoot>,
     );
     const parent = screen.getByTestId("content").parentElement?.parentElement;
-    expect(parent?.style.width).toBe("70px");
-    expect(parent?.style.height).toBe("50px");
+    expect(parent?.style.width).toBe("80px");
+    expect(parent?.style.height).toBe("60px");
   });
 
   it("mixes a fixed axis with a child-driven axis", () => {
@@ -183,7 +225,7 @@ describe("child-driven sizing", () => {
     );
     const parent = screen.getByTestId("content").parentElement?.parentElement;
     expect(parent?.style.width).toBe("10px");
-    expect(parent?.style.height).toBe("30px");
+    expect(parent?.style.height).toBe("45px");
   });
 
   it("supports a size function of the child totals", () => {
@@ -198,8 +240,8 @@ describe("child-driven sizing", () => {
       </BoxRoot>,
     );
     const parent = screen.getByTestId("content").parentElement?.parentElement;
-    expect(parent?.style.width).toBe("71px");
-    expect(parent?.style.height).toBe("52px");
+    expect(parent?.style.width).toBe("81px");
+    expect(parent?.style.height).toBe("62px");
   });
 
   it("shrinks when a child unmounts", () => {
@@ -223,8 +265,24 @@ describe("child-driven sizing", () => {
       </BoxRoot>,
     );
     const parent = screen.getByTestId("content").parentElement?.parentElement;
+    expect(parent?.style.width).toBe("60px");
+    expect(parent?.style.height).toBe("30px");
+  });
+
+  it("counts stacked children as start-anchored", () => {
+    render(
+      <BoxRoot>
+        <Box position={{ x: 0, y: 0 }} size="childTotals">
+          <Box stackMode="vertical" position={{ x: 0, y: 10 }} size={{ x: 50, y: 20 }} />
+          <Box stackMode="vertical" position={{ x: 0, y: 8 }} size={{ x: 50, y: 20 }}>
+            <span data-testid="content" />
+          </Box>
+        </Box>
+      </BoxRoot>,
+    );
+    const parent = screen.getByTestId("content").parentElement?.parentElement;
     expect(parent?.style.width).toBe("50px");
-    expect(parent?.style.height).toBe("20px");
+    expect(parent?.style.height).toBe("58px");
   });
 
   it("defaults size to childTotals when omitted", () => {
@@ -238,8 +296,8 @@ describe("child-driven sizing", () => {
       </BoxRoot>,
     );
     const parent = screen.getByTestId("content").parentElement?.parentElement;
-    expect(parent?.style.width).toBe("50px");
-    expect(parent?.style.height).toBe("20px");
+    expect(parent?.style.width).toBe("60px");
+    expect(parent?.style.height).toBe("30px");
   });
 
   it("reports the childTotals sentinel to children instead of a number", () => {

@@ -231,11 +231,11 @@ function PlayfieldLayout() {
   );
 }
 
-export function Playfield() {
+export function Playfield({ position }: { position: Vec2 }) {
   return (
     <Box
       name="playfield"
-      position={{ x: 24, y: 56 }}
+      position={position}
       size={{ x: 380, y: 360 }}
       border={{ width: 1, color: "#e0e0e0" }}
       style={{ backgroundColor: "#fff", borderRadius: "8px" }}

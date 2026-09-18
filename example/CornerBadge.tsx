@@ -7,7 +7,7 @@ export function CornerBadge() {
         name="corner-badge"
         pivot={{ from: "bottomRight", to: "bottomRight" }}
         position={{ x: -16, y: -16 }}
-        size={(xt) => ({ x: xt + 24, y: 36 })}
+        size={(xt) => ({ x: xt + 12, y: 36 })}
         border={{ width: 1, color: "#e0e0e0" }}
         style={{ backgroundColor: "#fff", borderRadius: "6px" }}
       >

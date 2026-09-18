@@ -169,12 +169,12 @@ function PanelContent() {
   );
 }
 
-export function AutoPanel() {
+export function AutoPanel({ position }: { position: Vec2 }) {
   return (
     <Box
       name="auto-panel"
-      position={{ x: 428, y: 56 }}
-      size={(xt, yt) => ({ x: xt + 24, y: yt + 24 })}
+      position={position}
+      size={(_xt, yt) => ({ x: 344, y: yt + 12 })}
       border={{ width: 1, color: "#e0e0e0" }}
       style={{ backgroundColor: "#fff", borderRadius: "8px" }}
     >

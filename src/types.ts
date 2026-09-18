@@ -48,7 +48,7 @@ export type RelativeTo = "parent" | "siblings";
 
 export type StackMode = "vertical" | "horizontal" | "verticalReverse" | "horizontalReverse";
 
-export type OverflowMode = "visible" | "clip" | "scrollbar" | "ellipsis";
+export type OverflowMode = "visible" | "clip" | "scrollbar" | "auto" | "ellipsis";
 
 export interface BoxOverflow {
   x?: OverflowMode;
@@ -86,11 +86,17 @@ export interface SizeValues {
   y: AxisSizeSpec;
 }
 
+export type ChildAnchor = "start" | "center" | "end";
+
 export interface ChildRect {
   left: number;
   top: number;
   right: number;
   bottom: number;
+  anchorX?: ChildAnchor;
+  anchorY?: ChildAnchor;
+  reachX?: number;
+  reachY?: number;
 }
 
 export interface ParentBoxProps {

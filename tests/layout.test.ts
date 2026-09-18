@@ -122,12 +122,34 @@ describe("childTotalsFromRects", () => {
     expect(childTotalsFromRects(new Map())).toEqual({ x: 0, y: 0 });
   });
 
-  it("spans from the outermost child edges", () => {
+  it("measures required space from the anchored edge, counting offsets", () => {
     const rects = new Map([
       ["a", { left: 10, top: 10, right: 60, bottom: 30 }],
       ["b", { left: 30, top: 40, right: 80, bottom: 60 }],
     ]);
-    expect(childTotalsFromRects(rects)).toEqual({ x: 70, y: 50 });
+    expect(childTotalsFromRects(rects)).toEqual({ x: 80, y: 60 });
+  });
+
+  it("sums opposing anchors that share a latitude line", () => {
+    const rects = new Map([
+      ["left", { left: 0, top: 0, right: 120, bottom: 40, anchorX: "start", reachX: 120 } as const],
+      [
+        "right",
+        { left: 500, top: 10, right: 580, bottom: 30, anchorX: "end", reachX: 90 } as const,
+      ],
+    ]);
+    expect(childTotalsFromRects(rects).x).toBe(210);
+  });
+
+  it("does not sum opposing anchors on separate latitude lines", () => {
+    const rects = new Map([
+      ["left", { left: 0, top: 0, right: 120, bottom: 40, anchorX: "start", reachX: 120 } as const],
+      [
+        "right",
+        { left: 500, top: 100, right: 580, bottom: 130, anchorX: "end", reachX: 90 } as const,
+      ],
+    ]);
+    expect(childTotalsFromRects(rects).x).toBe(120);
   });
 });
 

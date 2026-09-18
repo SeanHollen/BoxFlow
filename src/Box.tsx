@@ -6,12 +6,15 @@ import type { DebugKind, DebugOverride } from "./debug";
 import {
   ZERO_RECT,
   ZERO_VEC,
+  anchorFromFraction,
   attachFor,
   borderToCss,
+  childReach,
   childTotalsFromRects,
   computeTopLeft,
   computeZRanks,
   overflowToCss,
+  pivotFraction,
   previousRect,
   resolveSize,
   sizeValues,
@@ -20,6 +23,7 @@ import type {
   BoxBorder,
   BoxContextValue,
   BoxOverflow,
+  ChildAnchor,
   ChildRect,
   PaintStyle,
   PivotPair,
@@ -49,6 +53,7 @@ export interface BoxBaseProps {
 
 export interface BoxProps extends BoxBaseProps {
   size?: SizeSpec;
+  minSize?: SizeSpec;
 }
 
 export function useReferenceRect(
@@ -72,6 +77,7 @@ export function useReferenceRect(
 interface EffectiveLayout {
   position: Vec2;
   size: SizeSpec;
+  minSize: SizeSpec | undefined;
   pivot: PivotPair | undefined;
   stackMode: StackMode | undefined;
   relativeTo: RelativeTo | undefined;
@@ -93,9 +99,14 @@ function mergeOverride(props: BoxProps, override: DebugOverride | undefined): Ef
     override?.size !== undefined && override.size !== "(function)"
       ? override.size
       : (props.size ?? "childTotals");
+  const minSize =
+    override?.minSize !== undefined && override.minSize !== "(function)"
+      ? override.minSize
+      : props.minSize;
   return {
     position: override?.position ?? props.position,
     size,
+    minSize,
     pivot,
     stackMode,
     relativeTo: override?.relativeTo ?? props.relativeTo,
@@ -113,14 +124,16 @@ export function Box(props: BoxProps) {
     useChildRects();
   const [scrollOffset, setScrollOffset] = useState<Vec2>(ZERO_VEC);
 
-  const { position, size, pivot, stackMode, relativeTo, overflow, border } = mergeOverride(
+  const { position, size, minSize, pivot, stackMode, relativeTo, overflow, border } = mergeOverride(
     props,
     debug?.overrides[id],
   );
 
   const { from, to } = attachFor(pivot, stackMode);
   const reference = useReferenceRect(id, relativeTo, stackMode);
-  const resolved = resolveSize(size, childTotalsFromRects(childRects));
+  const totals = childTotalsFromRects(childRects);
+  const resolved = resolveSize(size, totals);
+  const minResolved = minSize === undefined ? ZERO_VEC : resolveSize(minSize, totals);
   const topLeft = computeTopLeft({ from, to, position, size: resolved, reference });
 
   const borderWidth = border?.width ?? 0;
@@ -129,17 +142,28 @@ export function Box(props: BoxProps) {
   const valueY = values.y;
   const resolvedX = resolved.x;
   const resolvedY = resolved.y;
+  const flooredX = Math.max(resolvedX, minResolved.x);
+  const flooredY = Math.max(resolvedY, minResolved.y);
   const topLeftX = topLeft.x;
   const topLeftY = topLeft.y;
   const value: BoxContextValue = {
-    size: { x: valueX, y: valueY },
+    size: {
+      x: typeof valueX === "number" ? Math.max(valueX, minResolved.x) : valueX,
+      y: typeof valueY === "number" ? Math.max(valueY, minResolved.y) : valueY,
+    },
     innerSizeValues: {
-      x: typeof valueX === "number" ? Math.max(0, valueX - 2 * borderWidth) : valueX,
-      y: typeof valueY === "number" ? Math.max(0, valueY - 2 * borderWidth) : valueY,
+      x:
+        typeof valueX === "number"
+          ? Math.max(0, Math.max(valueX, minResolved.x) - 2 * borderWidth)
+          : valueX,
+      y:
+        typeof valueY === "number"
+          ? Math.max(0, Math.max(valueY, minResolved.y) - 2 * borderWidth)
+          : valueY,
     },
     resolvedInnerSize: {
-      x: Math.max(0, resolvedX - 2 * borderWidth),
-      y: Math.max(0, resolvedY - 2 * borderWidth),
+      x: Math.max(0, flooredX - 2 * borderWidth),
+      y: Math.max(0, flooredY - 2 * borderWidth),
     },
     childRects,
     zRanks: computeZRanks(childZ, props.zSort),
@@ -150,6 +174,20 @@ export function Box(props: BoxProps) {
     unregisterZ,
   };
 
+  const relative = relativeTo ?? (stackMode ? "siblings" : "parent");
+  const predecessor = relative === "siblings" ? previousRect(parent.childRects, id) : undefined;
+  let anchorX: ChildAnchor;
+  let anchorY: ChildAnchor;
+  if (relative === "siblings") {
+    anchorX = predecessor?.anchorX ?? "start";
+    anchorY = predecessor?.anchorY ?? "start";
+  } else {
+    anchorX = anchorFromFraction(pivotFraction(from).x);
+    anchorY = anchorFromFraction(pivotFraction(from).y);
+  }
+  const reachX = childReach(anchorX, topLeftX, resolvedX, parent.resolvedInnerSize.x);
+  const reachY = childReach(anchorY, topLeftY, resolvedY, parent.resolvedInnerSize.y);
+
   const { registerChild: parentRegister, unregisterChild: parentUnregister } = parent;
   useLayoutEffect(() => {
     parentRegister(id, {
@@ -157,8 +195,23 @@ export function Box(props: BoxProps) {
       top: topLeftY,
       right: topLeftX + resolvedX,
       bottom: topLeftY + resolvedY,
+      anchorX,
+      anchorY,
+      reachX,
+      reachY,
     });
-  }, [id, parentRegister, topLeftX, topLeftY, resolvedX, resolvedY]);
+  }, [
+    id,
+    parentRegister,
+    topLeftX,
+    topLeftY,
+    resolvedX,
+    resolvedY,
+    anchorX,
+    anchorY,
+    reachX,
+    reachY,
+  ]);
   useLayoutEffect(() => () => parentUnregister(id), [id, parentUnregister]);
 
   const { registerZ: parentRegisterZ, unregisterZ: parentUnregisterZ } = parent;
@@ -180,6 +233,7 @@ export function Box(props: BoxProps) {
             snapshot: snapshotProps({
               position,
               size,
+              minSize,
               pivot,
               relativeTo,
               stackMode,
@@ -190,7 +244,11 @@ export function Box(props: BoxProps) {
         }
       : undefined;
 
-  const scrollable = overflow?.x === "scrollbar" || overflow?.y === "scrollbar";
+  const scrollable =
+    overflow?.x === "scrollbar" ||
+    overflow?.y === "scrollbar" ||
+    overflow?.x === "auto" ||
+    overflow?.y === "auto";
   const handleScroll = scrollable
     ? (event: UIEvent<HTMLDivElement>) =>
         setScrollOffset({

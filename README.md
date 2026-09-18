@@ -84,7 +84,13 @@ Sibling rectangles come from the same registration channel as `childTotals`, so 
 <Box size={(xt, yt) => ({ x: xt + 1, y: yt + 2 })} ... />     // any function of the totals
 ```
 
-A child total is the extent of the direct child `Box`es on that axis: from the outermost edge of the upmost/leftmost child to the outermost edge of the downmost/rightmost one (raw text and non-`Box` elements don't count). Children report their rectangles up through context as they render, so a child-driven box resolves its pixel size one layout pass after its children appear, and re-resolves whenever they move or resize.
+A child total is the **required space** on that axis: each child contributes its reach from the edge it's anchored to (a left-anchored child at `x: 12` with width 50 needs 62; a right-anchored child with a −16 offset and width 200 needs 216), and when a left-anchored and a right-anchored child share a latitude line (their y-ranges overlap), their reaches **add** — that sum is the width below which they'd collide. The total is the widest requirement across all lines; sibling-stacked children inherit the anchor of the chain they hang off. Raw text and non-`Box` elements don't count. Children report their rectangles up through context as they render, so a child-driven box resolves its pixel size one layout pass after its children appear, and re-resolves whenever they move or resize.
+
+#### minSize and overflow instead of collision
+
+`minSize` (same forms as `size`) doesn't change the box's visual size — it floors the **coordinate space children anchor into**. While the actual size is above the floor, edge-anchored children move with the edges as usual; below it, the space stops shrinking, children stop converging, and the content overflows the visual box for the `overflow` rule to handle. `minSize: "childTotals"` is CSS's min-content collapse point: shrink freely until things would touch, then scroll/clip instead of overlapping.
+
+`BoxRoot` participates: it defaults to `overflow: auto` on both axes (scrollbars appear only when content actually overflows — override with its `overflow` prop) and takes a `minSize`, so a page laid out for 1160px gets a horizontal scrollbar below 1160 instead of colliding elements — the standard CSS page behavior.
 
 **The recursion rule:** a child-driven axis is sized *by* its children, so its children cannot ask for its size — that's a cycle. On such an axis, `useParentBoxProps()` returns the string `"childTotals"` instead of a number (so `size` is typed `number | "childTotals"` per axis; the `resolvedAxis(value, fallback?)` helper narrows it when you know it's numeric). `pivot.from` anchoring still works inside child-driven boxes, since the box resolves real pixels internally.
 
@@ -138,11 +144,12 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 `<Box>`:
 
 - `position: { x, y }` — required. Pixel offset from the attach point; +x right, +y down.
-- `size?: { x, y } | "childTotals" | { x: number | "childTotals", y: number | "childTotals" } | (xTotal, yTotal) => { x, y }` — default `"childTotals"`: an unsized box hugs its children.
+- `size?: { x, y } | "childTotals" | { x: number | "childTotals", y: number | "childTotals" } | (xTotal, yTotal) => { x, y }` — default `"childTotals"`: an unsized box hugs its children's required space.
+- `minSize?: SizeSpec` — floors the coordinate space children anchor into (not the visual size); below the floor, content overflows instead of colliding.
 - `pivot?: { from?: Pivot, to?: Pivot }` — attach points on the reference and on this box. Default `topLeft`/`topLeft`.
 - `stackMode?: "vertical" | "horizontal" | "verticalReverse" | "horizontalReverse"` — sibling-stacking shorthand (below / right / above / left of the previous sibling); excludes `pivot`.
 - `relativeTo?: "parent" | "siblings"` — what the box positions against. Default `"parent"`.
-- `overflow?: { x?: OverflowMode, y?: OverflowMode }` — `"visible" | "clip" | "scrollbar" | "ellipsis"` per axis. Default `visible`. `ellipsis` is for text on the x axis; on y it clips.
+- `overflow?: { x?: OverflowMode, y?: OverflowMode }` — `"visible" | "clip" | "scrollbar" | "auto" | "ellipsis"` per axis. Default `visible` (`auto` shows scrollbars only when content overflows). `ellipsis` is for text on the x axis; on y it clips.
 - `border?: { width: number, color?: string, style?: "solid" | "dashed" | "dotted" | "double" }`
 - `zValue?: unknown` — stacking order among siblings. Numbers sort lowest→highest by default; anything else falls back to string comparison, or to the parent's `zSort`. Boxes without a `zValue` stay in DOM order beneath ranked ones. Pass referentially stable values (module-level consts, not inline object literals).
 - `zSort?: (a, b) => number` — comparator the **parent** provides for its children's `zValue`s, enabling arbitrary objects as z values.
@@ -176,6 +183,8 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 `<BoxRoot>`:
 
 - `debug?: boolean` — enables the debug inspector. Default `false`.
+- `overflow?: { x?, y? }` — default `{ x: "auto", y: "auto" }`: the page scrolls when content overflows.
+- `minSize?: SizeSpec` — floor for the page's coordinate space; below it, scroll instead of collapse.
 - `zSort?: (a, b) => number` — comparator for its direct children's `zValue`s.
 - `style?: CSSProperties`
 - `children?: ReactNode`
@@ -222,6 +231,6 @@ The `example/` directory is a small Vite app exercising every feature of the lib
 
 - **TopBars** — the split bars from the snippet above: `useParentBoxProps` plus `resolvedAxis`, sizes derived from the root.
 - **Playfield** — bouncing sprite images driven by a `requestAnimationFrame` loop. Shows the payoff of positions being plain data: every frame it computes each sprite's nearest neighbor and the overall closest pair straight from the `position` values — no `getBoundingClientRect` — and renders the distances as labels that track the sprites.
-- **CenteredCard** — pivot-pair anchoring to the right edge, `border` with `countBorder`, per-axis `overflow` (`clip` + `scrollbar`), row labels vertically centered by pivoting intrinsic `Text` (`pivot={{ from: "centerLeft", to: "centerLeft" }}`).
+- **Scrollable card** — `border` with `countBorder`, per-axis `overflow` (`clip` + `scrollbar`), a sticky header via `useParentScroll()` + `zValue`, row labels vertically centered by pivoting intrinsic `Text`. The three demo cards flow onto rows via `<Wrap>` inside a scrollable box, so the Demos tab reflows instead of overlapping when the window narrows.
 - **AutoPanel** (left column, below the playfield) — sibling stacking and child-driven sizing together: every row is `stackMode="vertical"` with `position` as the gap (no manual y math anywhere), and the panel itself uses the function form (`(xt, yt) => ({ x: xt + 24, y: yt + 24 })` for 12px padding). Its chip shelf covers the rest: a `size="childTotals"` strip of horizontally stacked chips, then a `size={{ x: 40, y: "childTotals" }}` column placed beside it with an explicit sibling pivot pair (`relativeTo="siblings" pivot={{ from: "topRight", to: "topLeft" }}`), both wrapped in a `childTotals` box so the row below stacks under the taller of the two. Rows sample every `font.style`, the title uses `letterSpacing`, one paragraph wraps at `size={{ x: 180 }}` with `align: "center"` and `lineHeight`, one text fits `size={{ y: 42 }}` by finding its own width, and one row prints what `useParentBoxProps` reports inside a child-driven box — the literal string `childTotals`.
 - **CornerBadge** — a `Box` pinned to the bottom-right corner that auto-fits its label: function-form `size` adds padding around the intrinsic `Text` inside it.
