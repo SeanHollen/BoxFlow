@@ -9,7 +9,8 @@ function CardHeader() {
   return (
     <Box
       name="card-header"
-      position={{ x: 0, y: offset.y }}
+      sticky
+      position={{ x: 0, y: 0 }}
       size={{ x: resolvedAxis(parentProps.size.x), y: 58 }}
       zValue={1}
       style={{ backgroundColor: "#fff", borderRadius: "8px 8px 0 0" }}
@@ -18,7 +19,7 @@ function CardHeader() {
         {`Scrollable card — overflow & sticky`}
       </Text>
       <Text position={{ x: 12, y: 34 }} font={{ size: 11, color: "#80868b" }}>
-        {`sticky header via useParentScroll() and zValue; rows scroll beneath`}
+        {`sticky prop pins this header; useParentScroll() reads: ${Math.round(offset.y)}px scrolled`}
       </Text>
     </Box>
   );

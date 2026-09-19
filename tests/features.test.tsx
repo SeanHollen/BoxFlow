@@ -259,6 +259,26 @@ describe("Inset", () => {
   });
 });
 
+describe("sticky", () => {
+  it("pins with native CSS sticky instead of JS-lagged offsets", () => {
+    render(
+      <BoxRoot>
+        <Box position={{ x: 0, y: 0 }} size={{ x: 100, y: 200 }} overflow={{ y: "scrollbar" }}>
+          <Box sticky position={{ x: 4, y: 6 }} size={{ x: 80, y: 20 }} zValue={1}>
+            <span data-testid="head" />
+          </Box>
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByTestId("head").parentElement;
+    expect(el?.style.position).toBe("sticky");
+    expect(el?.style.top).toBe("6px");
+    expect(el?.style.marginLeft).toBe("4px");
+    expect(el?.style.width).toBe("80px");
+    expect(el?.style.zIndex).toBe("1");
+  });
+});
+
 describe("dangerousPositionStyles", () => {
   it("overrides computed layout when explicitly invoked", () => {
     render(

@@ -153,6 +153,7 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 - `border?: { width: number, color?: string, style?: "solid" | "dashed" | "dotted" | "double" }`
 - `zValue?: unknown` — stacking order among siblings. Numbers sort lowest→highest by default; anything else falls back to string comparison, or to the parent's `zSort`. Boxes without a `zValue` stay in DOM order beneath ranked ones. Pass referentially stable values (module-level consts, not inline object literals).
 - `zSort?: (a, b) => number` — comparator the **parent** provides for its children's `zValue`s, enabling arbitrary objects as z values.
+- `sticky?: boolean` — pins the box inside the nearest scrollable ancestor via native CSS sticky (compositor-driven, zero lag); `position` becomes the pinned offset from the scroll container's top-left. Pivots/stacking don't apply to sticky boxes. Use this for pinning; use `useParentScroll()` for scroll-*data* (progress indicators, parallax), where a frame of lag is fine.
 - `name?: string` — label shown by the debug inspector.
 - `style?: PaintStyle` — paint-only styles (background, radius, shadow, opacity, outline, cursor, filter, transition, …); layout-flavored CSS is a type error.
 - `dangerousPositionStyles?: CSSProperties` — raw CSS merged after the computed layout; overrides anything, on purpose, loudly.
@@ -192,7 +193,7 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 ### Hooks
 
 - `useParentBoxProps(options?)` — the parent box's size (see above).
-- `useParentScroll()` — `{ offset: {x, y} }`, the live scroll offset of the nearest enclosing box. Non-scrolling parents report `{0, 0}`. Position a child at `y: base + offset.y` to pin it while content scrolls (sticky).
+- `useParentScroll()` — `{ offset: {x, y} }`, the live scroll offset of the nearest enclosing box. Non-scrolling parents report `{0, 0}`. For scroll-driven *data* (progress readouts, reveal effects); for pinning, use the `sticky` prop — JS repositioning trails the compositor by a frame and visibly lags.
 
 ## Debug mode
 

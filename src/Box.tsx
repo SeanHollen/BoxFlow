@@ -43,6 +43,7 @@ export interface BoxBaseProps {
   border?: BoxBorder;
   zValue?: unknown;
   zSort?: ZSort;
+  sticky?: boolean;
   name?: string;
   style?: PaintStyle;
   dangerousPositionStyles?: CSSProperties;
@@ -144,8 +145,9 @@ export function Box(props: BoxProps) {
   const resolvedY = resolved.y;
   const flooredX = Math.max(resolvedX, minResolved.x);
   const flooredY = Math.max(resolvedY, minResolved.y);
-  const topLeftX = topLeft.x;
-  const topLeftY = topLeft.y;
+  const isSticky = props.sticky === true;
+  const topLeftX = isSticky ? position.x : topLeft.x;
+  const topLeftY = isSticky ? position.y : topLeft.y;
   const value: BoxContextValue = {
     size: {
       x: typeof valueX === "number" ? Math.max(valueX, minResolved.x) : valueX,
@@ -267,9 +269,9 @@ export function Box(props: BoxProps) {
         style={{
           ...style,
           ...internalStyle,
-          position: "absolute",
-          left: topLeftX,
-          top: topLeftY,
+          ...(isSticky
+            ? { position: "sticky" as const, top: topLeftY, marginLeft: topLeftX }
+            : { position: "absolute" as const, left: topLeftX, top: topLeftY }),
           width: resolvedX,
           height: resolvedY,
           zIndex: parent.zRanks.get(id),
