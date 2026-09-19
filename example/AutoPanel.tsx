@@ -1,4 +1,4 @@
-import { Box, Inset, Text, Wrap, useParentBoxProps } from "../src/index";
+import { Box, Inset, Text, Arrange, useParentBoxProps } from "../src/index";
 import type { StackMode, TextStyle, Vec2 } from "../src/index";
 
 const WRAP_COLORS = [
@@ -134,7 +134,7 @@ function PanelContent() {
         </Text>
       </Box>
       <Box stackMode="vertical" position={{ x: 0, y: 12 }} size={{ x: 180, y: "childTotals" }}>
-        <Wrap
+        <Arrange
           items={WRAP_COLORS}
           render={(color, { prior, parentSize }) => {
             const last = prior[prior.length - 1];

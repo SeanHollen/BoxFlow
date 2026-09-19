@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { Box, BoxRoot, Image, Inset, Text, Wrap, useParentScroll } from "../src/index";
-import type { WrapItemContext } from "../src/index";
+import { Box, BoxRoot, Image, Inset, Text, Arrange, useParentScroll } from "../src/index";
+import type { ArrangeItemContext } from "../src/index";
 
 class ResizeObserverStub {
   observe() {}
@@ -175,8 +175,8 @@ describe("Image", () => {
   });
 });
 
-describe("Wrap", () => {
-  function renderChip(_color: string, context: WrapItemContext) {
+describe("Arrange", () => {
+  function renderChip(_color: string, context: ArrangeItemContext) {
     const last = context.prior[context.prior.length - 1];
     let x = 0;
     let y = 0;
@@ -199,7 +199,7 @@ describe("Wrap", () => {
     render(
       <BoxRoot>
         <Box position={{ x: 0, y: 0 }} size={{ x: 100, y: "childTotals" }}>
-          <Wrap items={["a", "b", "c"]} render={renderChip} />
+          <Arrange items={["a", "b", "c"]} render={renderChip} />
         </Box>
       </BoxRoot>,
     );
@@ -217,7 +217,7 @@ describe("Wrap", () => {
     render(
       <BoxRoot>
         <Box position={{ x: 0, y: 0 }} size={{ x: 100, y: "childTotals" }}>
-          <Wrap items={["a", "b", "c"]} render={renderChip} />
+          <Arrange items={["a", "b", "c"]} render={renderChip} />
         </Box>
       </BoxRoot>,
     );

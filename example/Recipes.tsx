@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
-import { Box, Text, Wrap, resolvedAxis, useParentBoxProps } from "../src/index";
+import { Box, Text, Arrange, resolvedAxis, useParentBoxProps } from "../src/index";
 import type { Vec2 } from "../src/index";
 
 function Recipe({
@@ -441,7 +441,7 @@ export function Recipes() {
         overflow={{ x: "ellipsis" }}
         font={{ size: 12, color: "#5f6368" }}
       >
-        {`Familiar CSS patterns rebuilt with coordinates — each card names the CSS it replaces. The cards themselves flow via <Wrap> (CSS: grid auto-flow).`}
+        {`Familiar CSS patterns rebuilt with coordinates — each card names the CSS it replaces. The cards themselves flow via <Arrange> (CSS: grid auto-flow).`}
       </Text>
       <Box
         name="recipes"
@@ -449,7 +449,7 @@ export function Recipes() {
         size={{ x: width - 48, y: height - 82 }}
         overflow={{ x: "clip", y: "scrollbar" }}
       >
-        <Wrap
+        <Arrange
           items={RECIPES}
           render={(recipe, { prior, parentSize }) => {
             const last = prior[prior.length - 1];

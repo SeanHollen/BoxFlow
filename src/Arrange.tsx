@@ -3,22 +3,22 @@ import type { ReactNode } from "react";
 import { BoxContext, useBoxContext } from "./context";
 import type { BoxContextValue, ChildRect, Vec2 } from "./types";
 
-export interface WrapItemContext {
+export interface ArrangeItemContext {
   index: number;
   prior: readonly ChildRect[];
   parentSize: Vec2;
 }
 
-export interface WrapProps<T> {
+export interface ArrangeProps<T> {
   items: readonly T[];
-  render: (item: T, context: WrapItemContext) => ReactNode;
+  render: (item: T, context: ArrangeItemContext) => ReactNode;
 }
 
 function sameRect(a: ChildRect, b: ChildRect): boolean {
   return a.left === b.left && a.top === b.top && a.right === b.right && a.bottom === b.bottom;
 }
 
-export function Wrap<T>({ items, render }: WrapProps<T>) {
+export function Arrange<T>({ items, render }: ArrangeProps<T>) {
   const parent = useBoxContext();
   const [itemRects, setItemRects] = useState<ReadonlyMap<string, ChildRect>>(() => new Map());
 
