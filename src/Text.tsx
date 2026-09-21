@@ -33,9 +33,10 @@ export interface TextProps extends BoxBaseProps {
 export function Text({ font, size, style, children, baseline, ...boxProps }: TextProps) {
   const sx = size?.x;
   const sy = size?.y;
+  const basePosition = boxProps.position ?? { x: 0, y: 0 };
   const position = baseline
-    ? { x: boxProps.position.x, y: boxProps.position.y - fontBaselineOffset(font) }
-    : boxProps.position;
+    ? { x: basePosition.x, y: basePosition.y - fontBaselineOffset(font) }
+    : basePosition;
   if (sx !== undefined && sy !== undefined) {
     return (
       <Box
@@ -80,7 +81,7 @@ function IntrinsicText(props: IntrinsicTextProps) {
   const [measured, setMeasured] = useState<Vec2 | undefined>(undefined);
 
   const override = debug?.overrides[id];
-  const position = override?.position ?? props.position;
+  const position = override?.position ?? props.position ?? ZERO_VEC;
   let pivot = props.pivot;
   let stackMode = props.stackMode;
   if (override?.pivot) {

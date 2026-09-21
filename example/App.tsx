@@ -34,7 +34,7 @@ function PlaygroundArea() {
       style={{ borderRadius: "8px" }}
     >
       <Text
-        pivot={{ from: "bottomRight", to: "bottomRight" }}
+        pivot={{ from: "bottomRight" }}
         position={{ x: -12, y: -8 }}
         font={{ size: 11, color: "#bdc1c6", style: "italic" }}
       >

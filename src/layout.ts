@@ -60,7 +60,7 @@ export function attachFor(
   if (stackMode === "horizontal") return { from: "topRight", to: "topLeft" };
   if (stackMode === "verticalReverse") return { from: "topLeft", to: "bottomLeft" };
   if (stackMode === "horizontalReverse") return { from: "topLeft", to: "topRight" };
-  return { from: pivot?.from ?? "topLeft", to: pivot?.to ?? "topLeft" };
+  return { from: pivot?.from ?? "topLeft", to: pivot?.to ?? pivot?.from ?? "topLeft" };
 }
 
 export function previousRect(

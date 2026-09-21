@@ -42,7 +42,7 @@ function Chip({
 function ChipShelf() {
   return (
     <Box stackMode="vertical" position={{ x: 0, y: 12 }}>
-      <Box position={{ x: 0, y: 0 }} style={{ backgroundColor: "#f1f3f4", borderRadius: "4px" }}>
+      <Box style={{ backgroundColor: "#f1f3f4", borderRadius: "4px" }}>
         <Chip color="#1a73e8" />
         <Chip stackMode="horizontal" position={{ x: 8, y: 0 }} color="#188038" />
         <Chip stackMode="horizontal" position={{ x: 8, y: 0 }} color="#d93025" />

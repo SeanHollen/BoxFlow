@@ -35,7 +35,7 @@ import type {
 } from "./types";
 
 export interface BoxBaseProps {
-  position: Vec2;
+  position?: Vec2;
   pivot?: PivotPair;
   stackMode?: StackMode;
   relativeTo?: RelativeTo;
@@ -105,7 +105,7 @@ function mergeOverride(props: BoxProps, override: DebugOverride | undefined): Ef
       ? override.minSize
       : props.minSize;
   return {
-    position: override?.position ?? props.position,
+    position: override?.position ?? props.position ?? ZERO_VEC,
     size,
     minSize,
     pivot,

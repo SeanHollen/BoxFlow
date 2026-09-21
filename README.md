@@ -10,10 +10,9 @@ function SplitBar() {
   const width = resolvedAxis(parentProps.size.x);
   return (
     <>
-      <Box position={{ x: 0, y: 0 }} size={{ x: width / 2, y: 5 }} />
+      <Box size={{ x: width / 2, y: 5 }} />
       <Box
         stackMode="horizontal"
-        position={{ x: 0, y: 0 }}
         size={{ x: width / 2, y: 5 }}
         overflow={{ x: "clip", y: "scrollbar" }}
       />
@@ -42,17 +41,17 @@ An absolutely positioned rectangle.
 
 | Prop | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `position` | `{x, y}` | required | Offset from the attach point, in pixels. +x is right, +y is down. |
+| `position` | `{x, y}` | `{0, 0}` | Offset from the attach point, in pixels. +x is right, +y is down. |
 | `size` | `SizeSpec` | `"childTotals"` | Width and height. Plain pixels, child-driven, or a function of the child totals — see below. Omitted, the box hugs its children — content-hugging is the default; fixed sizes are the deliberate choice. |
 | `relativeTo` | `"parent" \| "siblings"` | `"parent"` | What this box positions against: the parent's interior, or the **previous sibling's rectangle**. |
-| `pivot` | `{from?, to?}` | `topLeft`/`topLeft` | `from` is the point on the reference (parent or previous sibling) that `position` is measured from; `to` is the point on **this box** that lands there. |
+| `pivot` | `{from?, to?}` | `topLeft`/`topLeft` | `from` is the point on the reference (parent or previous sibling) that `position` is measured from; `to` is the point on **this box** that lands there. An unspecified `to` mirrors `from`, so `{from: "center"}` means center-to-center. |
 | `stackMode` | `"vertical" \| "horizontal" \| "verticalReverse" \| "horizontalReverse"` | — | Shorthand for the common sibling pivots: `vertical` stacks below the previous sibling, `horizontal` to its right, the `Reverse` forms above and to the left (gaps there are negative offsets, since +x/+y stay right/down). Implies `relativeTo="siblings"`. Cannot be combined with `pivot`. |
 | `overflow` | `{x?, y?}` | `visible` | Per-axis: `"visible"`, `"clip"`, or `"scrollbar"`. A `scrollbar` axis also contains scroll chaining (`overscroll-behavior: contain`), so reaching the end of the scroll never scrolls whatever is outside the box. |
 | `border` | `{width, color?, style?}` | — | Border in pixels, drawn inside the declared `size` (border-box). Set borders here, not via `style`, so the library can account for them. |
 | `style` | `PaintStyle` | — | Paint-only styles: background, radius, shadow, opacity, outline, cursor, filter, transition, … Layout-flavored CSS (padding, margin, display, width, transform) is a type error here. |
 | `dangerousPositionStyles` | `CSSProperties` | — | The deliberate escape hatch: raw CSS merged **after** the computed layout, so it can override anything — transforms, padding, even left/top. The name is the confirmation dialog. |
 
-To align content inside a box, don't reach for CSS — nest an intrinsically sized `Text` (or a `Box`) and pivot it: `pivot={{ from: "center", to: "center" }}` centers it, `pivot={{ from: "centerLeft", to: "centerLeft" }}` vertically centers it against the left edge, and so on. Positioning inside a box is the same mechanism as positioning the box itself.
+To align content inside a box, don't reach for CSS — nest an intrinsically sized `Text` (or a `Box`) and pivot it: `pivot={{ from: "center" }}` centers it, `pivot={{ from: "centerLeft" }}` vertically centers it against the left edge, and so on. Positioning inside a box is the same mechanism as positioning the box itself.
 
 `Pivot` is one of `topLeft`, `topCenter`, `topRight`, `centerLeft`, `center`, `centerRight`, `bottomLeft`, `bottomCenter`, `bottomRight`.
 
@@ -97,7 +96,7 @@ A child total is the **required space** on that axis: each child contributes its
 Centering a box on its parent, regardless of either one's size:
 
 ```tsx
-<Box pivot={{ from: "center", to: "center" }} position={{ x: 0, y: 0 }} size={{ x: 200, y: 100 }} />
+<Box pivot={{ from: "center" }} size={{ x: 200, y: 100 }} />
 ```
 
 ### `<Text>`
@@ -106,7 +105,7 @@ A `Box` that also swallows the text-specific CSS into a structured `font` prop, 
 
 ```tsx
 <Text
-  pivot={{ from: "bottomRight", to: "bottomRight" }}
+  pivot={{ from: "bottomRight" }}
   position={{ x: -16, y: -16 }}
   font={{ size: 13, color: "#5f6368" }}
 >
@@ -143,10 +142,10 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 
 `<Box>`:
 
-- `position: { x, y }` — required. Pixel offset from the attach point; +x right, +y down.
+- `position?: { x, y }` — default `{0, 0}`. Pixel offset from the attach point; +x right, +y down.
 - `size?: { x, y } | "childTotals" | { x: number | "childTotals", y: number | "childTotals" } | (xTotal, yTotal) => { x, y }` — default `"childTotals"`: an unsized box hugs its children's required space.
 - `minSize?: SizeSpec` — floors the coordinate space children anchor into (not the visual size); below the floor, content overflows instead of colliding.
-- `pivot?: { from?: Pivot, to?: Pivot }` — attach points on the reference and on this box. Default `topLeft`/`topLeft`.
+- `pivot?: { from?: Pivot, to?: Pivot }` — attach points on the reference and on this box. Default `topLeft`/`topLeft`; an unspecified `to` mirrors `from`.
 - `stackMode?: "vertical" | "horizontal" | "verticalReverse" | "horizontalReverse"` — sibling-stacking shorthand (below / right / above / left of the previous sibling); excludes `pivot`.
 - `relativeTo?: "parent" | "siblings"` — what the box positions against. Default `"parent"`.
 - `overflow?: { x?: OverflowMode, y?: OverflowMode }` — `"visible" | "clip" | "scrollbar" | "auto" | "ellipsis"` per axis. Default `visible` (`auto` shows scrollbars only when content overflows). `ellipsis` is for text on the x axis; on y it clips.

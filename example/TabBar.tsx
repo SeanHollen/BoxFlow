@@ -43,11 +43,7 @@ function TabButton({
 
 export function TabBar({ tab, onSelect }: { tab: Tab; onSelect: (tab: Tab) => void }) {
   return (
-    <Box
-      pivot={{ from: "topRight", to: "topRight" }}
-      position={{ x: -24, y: 16 }}
-      size="childTotals"
-    >
+    <Box pivot={{ from: "topRight" }} position={{ x: -24, y: 16 }} size="childTotals">
       <TabButton first label="Demos" active={tab === "demos"} onClick={() => onSelect("demos")} />
       <TabButton
         label="CSS recipes"

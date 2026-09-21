@@ -1,6 +1,6 @@
 import type { ComponentType, ReactNode } from "react";
 import { Box, Text, Arrange, resolvedAxis, useParentBoxProps } from "../src/index";
-import type { Vec2 } from "../src/index";
+import type { PivotPair, Vec2 } from "../src/index";
 
 function Recipe({
   position,
@@ -56,13 +56,9 @@ const NAV_LINKS = ["Home", "Docs", "Pricing"];
 function NavbarDemo() {
   const size = useDemoSize();
   return (
-    <Box
-      position={{ x: 0, y: 0 }}
-      size={{ x: size.x, y: 44 }}
-      style={{ backgroundColor: "#202124", borderRadius: "6px" }}
-    >
+    <Box size={{ x: size.x, y: 44 }} style={{ backgroundColor: "#202124", borderRadius: "6px" }}>
       <Text
-        pivot={{ from: "centerLeft", to: "centerLeft" }}
+        pivot={{ from: "centerLeft" }}
         position={{ x: 12, y: 0 }}
         font={{ size: 13, weight: 600, color: "#fff" }}
       >
@@ -79,7 +75,7 @@ function NavbarDemo() {
         </Text>
       ))}
       <Text
-        pivot={{ from: "centerRight", to: "centerRight" }}
+        pivot={{ from: "centerRight" }}
         position={{ x: -12, y: 0 }}
         font={{ size: 12, weight: 600, color: "#8ab4f8" }}
       >
@@ -96,11 +92,11 @@ function Region({
   label,
   pivot,
 }: {
-  position: Vec2;
+  position?: Vec2;
   size: Vec2;
   color: string;
   label: string;
-  pivot?: { from: "topRight"; to: "topRight" } | { from: "bottomLeft"; to: "bottomLeft" };
+  pivot?: PivotPair;
 }) {
   return (
     <Box
@@ -109,11 +105,7 @@ function Region({
       pivot={pivot}
       style={{ backgroundColor: color, borderRadius: "4px" }}
     >
-      <Text
-        pivot={{ from: "center", to: "center" }}
-        position={{ x: 0, y: 0 }}
-        font={{ size: 9, color: "#3c4043" }}
-      >
+      <Text pivot={{ from: "center" }} font={{ size: 9, color: "#3c4043" }}>
         {label}
       </Text>
     </Box>
@@ -125,12 +117,7 @@ function HolyGrailDemo() {
   const middleH = size.y - 52;
   return (
     <>
-      <Region
-        position={{ x: 0, y: 0 }}
-        size={{ x: size.x, y: 24 }}
-        color="#aecbfa"
-        label="header"
-      />
+      <Region size={{ x: size.x, y: 24 }} color="#aecbfa" label="header" />
       <Region position={{ x: 0, y: 28 }} size={{ x: 70, y: middleH }} color="#e8f0fe" label="nav" />
       <Region
         position={{ x: 74, y: 28 }}
@@ -139,15 +126,14 @@ function HolyGrailDemo() {
         label="main"
       />
       <Region
-        pivot={{ from: "topRight", to: "topRight" }}
+        pivot={{ from: "topRight" }}
         position={{ x: 0, y: 28 }}
         size={{ x: 70, y: middleH }}
         color="#e8f0fe"
         label="aside"
       />
       <Region
-        pivot={{ from: "bottomLeft", to: "bottomLeft" }}
-        position={{ x: 0, y: 0 }}
+        pivot={{ from: "bottomLeft" }}
         size={{ x: size.x, y: 20 }}
         color="#dadce0"
         label="footer"
@@ -177,7 +163,6 @@ function CardGridDemo() {
           style={{ borderRadius: "6px" }}
         >
           <Box
-            position={{ x: 0, y: 0 }}
             size={{ x: columnWidth - 2, y: 52 }}
             style={{ backgroundColor: product.color, borderRadius: "5px 5px 0 0" }}
           />
@@ -205,16 +190,8 @@ function MediaObjectDemo() {
   const size = useDemoSize();
   return (
     <>
-      <Box
-        position={{ x: 0, y: 0 }}
-        size={{ x: 48, y: 48 }}
-        style={{ backgroundColor: "#1a73e8", borderRadius: "24px" }}
-      >
-        <Text
-          pivot={{ from: "center", to: "center" }}
-          position={{ x: 0, y: 0 }}
-          font={{ size: 14, weight: 600, color: "#fff" }}
-        >
+      <Box size={{ x: 48, y: 48 }} style={{ backgroundColor: "#1a73e8", borderRadius: "24px" }}>
+        <Text pivot={{ from: "center" }} font={{ size: 14, weight: 600, color: "#fff" }}>
           {`AB`}
         </Text>
       </Box>
@@ -224,11 +201,7 @@ function MediaObjectDemo() {
         position={{ x: 12, y: 0 }}
         size={{ x: size.x - 60, y: "childTotals" }}
       >
-        <Text
-          stackMode="vertical"
-          position={{ x: 0, y: 0 }}
-          font={{ size: 12, weight: 600, color: "#202124" }}
-        >
+        <Text stackMode="vertical" font={{ size: 12, weight: 600, color: "#202124" }}>
           {`Ada Bell`}
         </Text>
         <Text stackMode="vertical" position={{ x: 0, y: 4 }} font={{ size: 11, color: "#5f6368" }}>
@@ -243,26 +216,25 @@ function HeroDemo() {
   const size = useDemoSize();
   return (
     <Box
-      position={{ x: 0, y: 0 }}
       size={{ x: size.x, y: size.y }}
       style={{ background: "linear-gradient(135deg, #1a73e8, #9334e6)", borderRadius: "6px" }}
     >
       <Text
-        pivot={{ from: "center", to: "center" }}
+        pivot={{ from: "center" }}
         position={{ x: 0, y: -6 }}
         font={{ size: 16, weight: 600, color: "#fff" }}
       >
         {`Centered over media`}
       </Text>
       <Text
-        pivot={{ from: "center", to: "center" }}
+        pivot={{ from: "center" }}
         position={{ x: 0, y: 14 }}
         font={{ size: 10, color: "rgba(255,255,255,0.8)" }}
       >
         {`no transform: translate(-50%, -50%) required`}
       </Text>
       <Text
-        pivot={{ from: "bottomRight", to: "bottomRight" }}
+        pivot={{ from: "bottomRight" }}
         position={{ x: -8, y: -6 }}
         font={{ size: 9, color: "rgba(255,255,255,0.7)" }}
       >
@@ -280,11 +252,7 @@ function BadgeDemo() {
         size={{ x: 48, y: 48 }}
         style={{ backgroundColor: "#188038", borderRadius: "24px" }}
       >
-        <Text
-          pivot={{ from: "center", to: "center" }}
-          position={{ x: 0, y: 0 }}
-          font={{ size: 14, weight: 600, color: "#fff" }}
-        >
+        <Text pivot={{ from: "center" }} font={{ size: 14, weight: 600, color: "#fff" }}>
           {`CD`}
         </Text>
         <Box
@@ -318,7 +286,7 @@ function ProgressDemo() {
         {`Uploading…`}
       </Text>
       <Text
-        pivot={{ from: "topRight", to: "topRight" }}
+        pivot={{ from: "topRight" }}
         position={{ x: 0, y: 8 }}
         font={{ size: 11, color: "#5f6368" }}
       >
@@ -330,7 +298,6 @@ function ProgressDemo() {
         style={{ backgroundColor: "#e8eaed", borderRadius: "4px" }}
       >
         <Box
-          position={{ x: 0, y: 0 }}
           size={{ x: size.x * fraction, y: 8 }}
           style={{ backgroundColor: "#1a73e8", borderRadius: "4px" }}
         />
@@ -351,11 +318,7 @@ function EscapeHatchDemo() {
         boxShadow: "0 2px 6px rgba(0, 0, 0, 0.15)",
       }}
     >
-      <Text
-        pivot={{ from: "center", to: "center" }}
-        position={{ x: 0, y: 0 }}
-        font={{ size: 12, weight: 600, color: "#3c4043" }}
-      >
+      <Text pivot={{ from: "center" }} font={{ size: 12, weight: 600, color: "#3c4043" }}>
         {`rotated sticker`}
       </Text>
     </Box>

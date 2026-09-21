@@ -89,6 +89,11 @@ describe("attachFor", () => {
     expect(attachFor(undefined, "horizontalReverse")).toEqual({ from: "topLeft", to: "topRight" });
   });
 
+  it("mirrors from onto an unspecified to", () => {
+    expect(attachFor({ from: "center" }, undefined)).toEqual({ from: "center", to: "center" });
+    expect(attachFor({ to: "topCenter" }, undefined)).toEqual({ from: "topLeft", to: "topCenter" });
+  });
+
   it("rejects pivot combined with stackMode", () => {
     expect(() => attachFor({ from: "center", to: "center" }, "vertical")).toThrowError(/stackMode/);
   });

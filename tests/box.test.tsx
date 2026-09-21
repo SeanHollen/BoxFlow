@@ -110,6 +110,25 @@ describe("Box", () => {
     expect(el?.style.height).toBe("50px");
   });
 
+  it("defaults position to the origin and mirrors a lone from pivot", () => {
+    render(
+      <BoxRoot>
+        <Box size={{ x: 20, y: 10 }}>
+          <span data-testid="plain" />
+        </Box>
+        <Box pivot={{ from: "center" }} size={{ x: 100, y: 50 }}>
+          <span data-testid="centered" />
+        </Box>
+      </BoxRoot>,
+    );
+    const plain = screen.getByTestId("plain").parentElement;
+    expect(plain?.style.left).toBe("0px");
+    expect(plain?.style.top).toBe("0px");
+    const centered = screen.getByTestId("centered").parentElement;
+    expect(centered?.style.left).toBe("350px");
+    expect(centered?.style.top).toBe("275px");
+  });
+
   it("maps overflow modes to CSS per axis", () => {
     render(
       <BoxRoot>

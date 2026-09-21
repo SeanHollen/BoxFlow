@@ -220,7 +220,7 @@ function PlayfieldLayout() {
         })}
       </Box>
       <Text
-        pivot={{ from: "bottomLeft", to: "bottomLeft" }}
+        pivot={{ from: "bottomLeft" }}
         position={{ x: 12, y: -8 }}
         size={{ x: size.x - 24, y: 16 }}
         font={{ size: 11, color: "#5f6368" }}

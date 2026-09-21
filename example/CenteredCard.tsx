@@ -10,7 +10,6 @@ function CardHeader() {
     <Box
       name="card-header"
       sticky
-      position={{ x: 0, y: 0 }}
       size={{ x: resolvedAxis(parentProps.size.x), y: 58 }}
       zValue={1}
       style={{ backgroundColor: "#fff", borderRadius: "8px 8px 0 0" }}
@@ -41,7 +40,7 @@ function CardRows() {
           }}
         >
           <Text
-            pivot={{ from: "centerLeft", to: "centerLeft" }}
+            pivot={{ from: "centerLeft" }}
             position={{ x: 10, y: 0 }}
             font={{ size: 13, color: "#3c4043" }}
           >
