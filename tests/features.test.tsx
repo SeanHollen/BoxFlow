@@ -198,7 +198,7 @@ describe("Arrange", () => {
   it("gives each item the rects of all prior items", () => {
     render(
       <BoxRoot>
-        <Box position={{ x: 0, y: 0 }} size={{ x: 100, y: "childTotals" }}>
+        <Box position={{ x: 0, y: 0 }} size={{ x: 100 }}>
           <Arrange items={["a", "b", "c"]} render={renderChip} />
         </Box>
       </BoxRoot>,
@@ -216,7 +216,7 @@ describe("Arrange", () => {
   it("registers items with the enclosing box, so childTotals wraps them", () => {
     render(
       <BoxRoot>
-        <Box position={{ x: 0, y: 0 }} size={{ x: 100, y: "childTotals" }}>
+        <Box position={{ x: 0, y: 0 }} size={{ x: 100 }}>
           <Arrange items={["a", "b", "c"]} render={renderChip} />
         </Box>
       </BoxRoot>,

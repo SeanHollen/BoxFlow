@@ -42,7 +42,7 @@ An absolutely positioned rectangle.
 | Prop | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `position` | `{x, y}` | `{0, 0}` | Offset from the attach point, in pixels. +x is right, +y is down. |
-| `size` | `SizeSpec` | `"childTotals"` | Width and height: `{x?, y?, min?, max?}`, `"childTotals"`, or a function of the child totals — see below. Omitted axes hug the children; `min` floors the coordinate space, `max` caps the visual box. Content-hugging is the default; fixed sizes are the deliberate choice. |
+| `size` | `SizeSpec` | hug children | Width and height: `{x?, y?, min?, max?}` or a function of the child totals — see below. Omitted axes hug the children; `min` floors the coordinate space, `max` caps the visual box. Content-hugging is the default; fixed sizes are the deliberate choice. |
 | `relativeTo` | `"parent" \| "siblings"` | `"parent"` | What this box positions against: the parent's interior, or the **previous sibling's rectangle**. |
 | `pivot` | `{from?, to?}` | `topLeft`/`topLeft` | `from` is the point on the reference (parent or previous sibling) that `position` is measured from; `to` is the point on **this box** that lands there. An unspecified `to` mirrors `from`, so `{from: "center"}` means center-to-center. |
 | `stackMode` | `"vertical" \| "horizontal" \| "verticalReverse" \| "horizontalReverse"` | — | Shorthand for the common sibling pivots: `vertical` stacks below the previous sibling, `horizontal` to its right, the `Reverse` forms above and to the left (gaps there are negative offsets, since +x/+y stay right/down). Implies `relativeTo="siblings"`. Cannot be combined with `pivot`. |
@@ -78,8 +78,8 @@ Sibling rectangles come from the same registration channel as `childTotals`, so 
 `size` accepts, besides plain `{x, y}` pixels:
 
 ```tsx
-<Box size="childTotals" ... />                                // both axes wrap the children
-<Box size={{ x: 10, y: "childTotals" }} ... />                // fixed width, height wraps
+<Box ... />                                                   // both axes wrap the children
+<Box size={{ x: 10 }} ... />                                  // fixed width, height wraps
 <Box size={(xt, yt) => ({ x: xt + 1, y: yt + 2 })} ... />     // any function of the totals
 ```
 
@@ -88,6 +88,13 @@ A child total is the **required space** on that axis: each child contributes its
 #### size.min and size.max — limits instead of collision or unbounded growth
 
 `size.min` doesn't change the box's visual size — it floors the **coordinate space children anchor into**. While the actual size is above the floor, edge-anchored children move with the edges as usual; below it, the space stops shrinking, children stop converging, and the content overflows the visual box for the `overflow` rule to handle. `min: "childTotals"` is CSS's min-content collapse point: shrink freely until things would touch, then scroll/clip instead of overlapping.
+
+The two limits are deliberately asymmetric — `max` caps the box, `min` floors the space:
+
+```
+visual box   = min(resolvedSize, max)
+anchor space = max(visual box, min)
+```
 
 `size.max` is the other direction: it **caps the visual box**, so a content-hugging box grows with its children only up to the cap, after which content overflows and the `overflow` rule takes over — `size={{ max: { y: 400 } }}` with `overflow={{ y: "scrollbar" }}` is a list that hugs until 400px, then scrolls. Both limits take per-axis numbers or `"childTotals"`.
 
@@ -145,7 +152,7 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 `<Box>`:
 
 - `position?: { x, y }` — default `{0, 0}`. Pixel offset from the attach point; +x right, +y down.
-- `size?: { x?, y?, min?, max? } | "childTotals" | (xTotal, yTotal) => { x, y }` — axes are `number | "childTotals"` (default `"childTotals"`: hug the children's required space); `min`/`max` are per-axis limits (see above).
+- `size?: { x?, y?, min?, max? } | (xTotal, yTotal) => { x, y }` — axes are numbers; an omitted axis hugs the children's required space; `min`/`max` are per-axis limits taking numbers or `"childTotals"` (see above).
 - `size.min` / `size.max` — per-axis limits inside the size object: `min` floors the coordinate space children anchor into (content overflows instead of colliding); `max` caps the visual box (content-hugging stops growing and overflows instead). Both accept numbers or `"childTotals"`.
 - `pivot?: { from?: Pivot, to?: Pivot }` — attach points on the reference and on this box. Default `topLeft`/`topLeft`; an unspecified `to` mirrors `from`.
 - `stackMode?: "vertical" | "horizontal" | "verticalReverse" | "horizontalReverse"` — sibling-stacking shorthand (below / right / above / left of the previous sibling); excludes `pivot`.
@@ -247,5 +254,5 @@ The `example/` directory is a small Vite app exercising every feature of the lib
 - **TopBars** — the split bars from the snippet above: `useParentBoxProps` plus `resolvedAxis`, sizes derived from the root.
 - **Playfield** — bouncing sprite images driven by a `requestAnimationFrame` loop. Shows the payoff of positions being plain data: every frame it computes each sprite's nearest neighbor and the overall closest pair straight from the `position` values — no `getBoundingClientRect` — and renders the distances as labels that track the sprites.
 - **Scrollable card** — `border` with `countBorder`, per-axis `overflow` (`clip` + `scrollbar`), a header pinned with `sticky` + `zValue` while `useParentScroll()` feeds its live scrolled-distance readout, row labels vertically centered by pivoting intrinsic `Text`. The Demos tab itself sits on the root's `minSize`: narrow the window below 1160px and the page scrolls horizontally instead of letting columns collide.
-- **AutoPanel** (left column, below the playfield) — sibling stacking and child-driven sizing together: every row is `stackMode="vertical"` with `position` as the gap (no manual y math anywhere), and the panel itself uses the function form (`(xt, yt) => ({ x: xt + 24, y: yt + 24 })` for 12px padding). Its chip shelf covers the rest: a `size="childTotals"` strip of horizontally stacked chips, then a `size={{ x: 40, y: "childTotals" }}` column placed beside it with an explicit sibling pivot pair (`relativeTo="siblings" pivot={{ from: "topRight", to: "topLeft" }}`), both wrapped in a `childTotals` box so the row below stacks under the taller of the two. Rows sample every `font.style`, the title uses `letterSpacing`, one paragraph wraps at `size={{ x: 180 }}` with `align: "center"` and `lineHeight`, one text fits `size={{ y: 42 }}` by finding its own width, and one row prints what `useParentBoxProps` reports inside a child-driven box — the literal string `childTotals`.
+- **AutoPanel** (left column, below the playfield) — sibling stacking and child-driven sizing together: every row is `stackMode="vertical"` with `position` as the gap (no manual y math anywhere), and the panel itself uses the function form (`(xt, yt) => ({ x: xt + 24, y: yt + 24 })` for 12px padding). Its chip shelf covers the rest: an unsized (content-hugging) strip of horizontally stacked chips, then a `size={{ x: 40 }}` column placed beside it with an explicit sibling pivot pair (`relativeTo="siblings" pivot={{ from: "topRight", to: "topLeft" }}`), both wrapped in a content-hugging box so the row below stacks under the taller of the two. Rows sample every `font.style`, the title uses `letterSpacing`, one paragraph wraps at `size={{ x: 180 }}` with `align: "center"` and `lineHeight`, one text fits `size={{ y: 42 }}` by finding its own width, and one row prints what `useParentBoxProps` reports inside a child-driven box — the literal string `childTotals`.
 - **CornerBadge** — a `Box` pinned to the bottom-right corner that auto-fits its label: function-form `size` adds padding around the intrinsic `Text` inside it.

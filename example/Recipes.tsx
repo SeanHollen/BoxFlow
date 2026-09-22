@@ -12,7 +12,7 @@ function Recipe({
 }: {
   position: Vec2;
   width: number;
-  demoHeight: number | "childTotals";
+  demoHeight?: number;
   title: string;
   css: string;
   children: ReactNode;
@@ -199,7 +199,7 @@ function MediaObjectDemo() {
         relativeTo="siblings"
         pivot={{ from: "topRight", to: "topLeft" }}
         position={{ x: 12, y: 0 }}
-        size={{ x: size.x - 60, y: "childTotals" }}
+        size={{ x: size.x - 60 }}
       >
         <Text stackMode="vertical" font={{ size: 12, weight: 600, color: "#202124" }}>
           {`Ada Bell`}
@@ -329,7 +329,7 @@ interface RecipeSpec {
   title: string;
   css: string;
   w: number;
-  demoH: number | "childTotals";
+  demoH?: number;
   Demo: ComponentType;
 }
 
@@ -359,7 +359,6 @@ const RECIPES: RecipeSpec[] = [
     title: "Media object",
     css: "CSS: float/flex media pattern → sibling pivot beside the avatar, intrinsic wrap",
     w: 460,
-    demoH: "childTotals",
     Demo: MediaObjectDemo,
   },
   {

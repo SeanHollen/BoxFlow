@@ -88,14 +88,8 @@ export function borderToCss(border: BoxBorder | undefined): CSSProperties {
 }
 
 export function resolveSize(size: SizeSpec, childTotals: Vec2): Vec2 {
-  if (size === "childTotals") return { x: childTotals.x, y: childTotals.y };
   if (typeof size === "function") return size(childTotals.x, childTotals.y);
-  const x = size.x ?? "childTotals";
-  const y = size.y ?? "childTotals";
-  return {
-    x: x === "childTotals" ? childTotals.x : x,
-    y: y === "childTotals" ? childTotals.y : y,
-  };
+  return { x: size.x ?? childTotals.x, y: size.y ?? childTotals.y };
 }
 
 export function resolveLimit(
@@ -111,14 +105,12 @@ export function resolveLimit(
 }
 
 export function sizeLimits(size: SizeSpec): { min?: SizeLimit; max?: SizeLimit } {
-  if (size === "childTotals" || typeof size === "function") return {};
+  if (typeof size === "function") return {};
   return { min: size.min, max: size.max };
 }
 
 export function sizeValues(size: SizeSpec): SizeValues {
-  if (size === "childTotals" || typeof size === "function") {
-    return { x: "childTotals", y: "childTotals" };
-  }
+  if (typeof size === "function") return { x: "childTotals", y: "childTotals" };
   return { x: size.x ?? "childTotals", y: size.y ?? "childTotals" };
 }
 

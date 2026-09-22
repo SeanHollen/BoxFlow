@@ -107,14 +107,6 @@ describe("resolveSize", () => {
     expect(resolveSize({ x: 10, y: 20 }, totals)).toEqual({ x: 10, y: 20 });
   });
 
-  it("resolves the childTotals shorthand on both axes", () => {
-    expect(resolveSize("childTotals", totals)).toEqual({ x: 70, y: 50 });
-  });
-
-  it("resolves childTotals per axis", () => {
-    expect(resolveSize({ x: 10, y: "childTotals" }, totals)).toEqual({ x: 10, y: 50 });
-  });
-
   it("defaults missing axes to childTotals", () => {
     expect(resolveSize({ x: 10 }, totals)).toEqual({ x: 10, y: 50 });
   });

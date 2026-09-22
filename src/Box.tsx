@@ -100,7 +100,7 @@ function mergeOverride(props: BoxProps, override: DebugOverride | undefined): Ef
   const size =
     override?.size !== undefined && override.size !== "(function)"
       ? override.size
-      : (props.size ?? "childTotals");
+      : (props.size ?? {});
   return {
     position: override?.position ?? props.position ?? ZERO_VEC,
     size,

@@ -79,16 +79,13 @@ export type AxisSizeSpec = number | "childTotals";
 export type SizeLimit = "childTotals" | { x?: AxisSizeSpec; y?: AxisSizeSpec };
 
 export interface SizeObject {
-  x?: AxisSizeSpec;
-  y?: AxisSizeSpec;
+  x?: number;
+  y?: number;
   min?: SizeLimit;
   max?: SizeLimit;
 }
 
-export type SizeSpec =
-  | "childTotals"
-  | SizeObject
-  | ((xChildTotal: number, yChildTotal: number) => Vec2);
+export type SizeSpec = SizeObject | ((xChildTotal: number, yChildTotal: number) => Vec2);
 
 export interface SizeValues {
   x: AxisSizeSpec;

@@ -51,7 +51,7 @@ function ChipShelf() {
         relativeTo="siblings"
         pivot={{ from: "topRight", to: "topLeft" }}
         position={{ x: 12, y: 0 }}
-        size={{ x: 40, y: "childTotals" }}
+        size={{ x: 40 }}
         style={{ backgroundColor: "#f1f3f4", borderRadius: "4px" }}
       >
         <Chip position={{ x: 12, y: 0 }} color="#f9ab00" />
@@ -133,7 +133,7 @@ function PanelContent() {
           {`/month — baseline-aligned`}
         </Text>
       </Box>
-      <Box stackMode="vertical" position={{ x: 0, y: 12 }} size={{ x: 180, y: "childTotals" }}>
+      <Box stackMode="vertical" position={{ x: 0, y: 12 }} size={{ x: 180 }}>
         <Arrange
           items={WRAP_COLORS}
           render={(color, { prior, parentSize }) => {

@@ -248,7 +248,7 @@ describe("child-driven sizing", () => {
   it("sizes to the extent of its children with childTotals", () => {
     render(
       <BoxRoot>
-        <Box position={{ x: 0, y: 0 }} size="childTotals">
+        <Box position={{ x: 0, y: 0 }}>
           <Box position={{ x: 10, y: 10 }} size={{ x: 50, y: 20 }} />
           <Box position={{ x: 30, y: 40 }} size={{ x: 50, y: 20 }}>
             <span data-testid="content" />
@@ -264,7 +264,7 @@ describe("child-driven sizing", () => {
   it("mixes a fixed axis with a child-driven axis", () => {
     render(
       <BoxRoot>
-        <Box position={{ x: 0, y: 0 }} size={{ x: 10, y: "childTotals" }}>
+        <Box position={{ x: 0, y: 0 }} size={{ x: 10 }}>
           <Box position={{ x: 0, y: 15 }} size={{ x: 5, y: 30 }}>
             <span data-testid="content" />
           </Box>
@@ -295,7 +295,7 @@ describe("child-driven sizing", () => {
   it("shrinks when a child unmounts", () => {
     const view = render(
       <BoxRoot>
-        <Box position={{ x: 0, y: 0 }} size="childTotals">
+        <Box position={{ x: 0, y: 0 }}>
           <Box position={{ x: 10, y: 10 }} size={{ x: 50, y: 20 }}>
             <span data-testid="content" />
           </Box>
@@ -305,7 +305,7 @@ describe("child-driven sizing", () => {
     );
     view.rerender(
       <BoxRoot>
-        <Box position={{ x: 0, y: 0 }} size="childTotals">
+        <Box position={{ x: 0, y: 0 }}>
           <Box position={{ x: 10, y: 10 }} size={{ x: 50, y: 20 }}>
             <span data-testid="content" />
           </Box>
@@ -320,7 +320,7 @@ describe("child-driven sizing", () => {
   it("counts stacked children as start-anchored", () => {
     render(
       <BoxRoot>
-        <Box position={{ x: 0, y: 0 }} size="childTotals">
+        <Box position={{ x: 0, y: 0 }}>
           <Box stackMode="vertical" position={{ x: 0, y: 10 }} size={{ x: 50, y: 20 }} />
           <Box stackMode="vertical" position={{ x: 0, y: 8 }} size={{ x: 50, y: 20 }}>
             <span data-testid="content" />
@@ -351,7 +351,7 @@ describe("child-driven sizing", () => {
   it("reports the childTotals sentinel to children instead of a number", () => {
     render(
       <BoxRoot>
-        <Box position={{ x: 0, y: 0 }} size={{ x: 10, y: "childTotals" }}>
+        <Box position={{ x: 0, y: 0 }} size={{ x: 10 }}>
           <SizeProbe />
         </Box>
       </BoxRoot>,

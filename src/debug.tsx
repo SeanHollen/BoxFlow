@@ -35,11 +35,10 @@ const sizeLimitSchema = z.union([
 
 const sizeSpecSchema = z
   .union([
-    z.literal("childTotals"),
     z.literal("(function)"),
     z.strictObject({
-      x: axisSizeSchema.optional(),
-      y: axisSizeSchema.optional(),
+      x: z.number().optional(),
+      y: z.number().optional(),
       min: sizeLimitSchema.optional(),
       max: sizeLimitSchema.optional(),
     }),
