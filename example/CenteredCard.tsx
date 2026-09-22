@@ -18,7 +18,7 @@ function CardHeader() {
         {`Scrollable card — overflow & sticky`}
       </Text>
       <Text position={{ x: 12, y: 34 }} font={{ size: 11, color: "#80868b" }}>
-        {`sticky prop pins this header; useParentScroll() reads: ${Math.round(offset.y)}px scrolled`}
+        {`size.max caps this card at 400px; sticky pins me; scrolled ${Math.round(offset.y)}px`}
       </Text>
     </Box>
   );
@@ -57,7 +57,7 @@ export function CenteredCard({ position }: { position: Vec2 }) {
     <Box
       name="card"
       position={position}
-      size={{ x: 320, y: 400 }}
+      size={{ x: 320, max: { y: 400 } }}
       overflow={{ x: "clip", y: "scrollbar" }}
       border={{ width: 1, color: "#e0e0e0" }}
       style={{ backgroundColor: "#fff", borderRadius: "8px" }}

@@ -44,9 +44,9 @@ describe("BoxRoot", () => {
     expect(clippedRoot.style.overflowX).toBe("hidden");
   });
 
-  it("floors the anchor space with minSize while measuring smaller", () => {
+  it("floors the anchor space with size.min while measuring smaller", () => {
     render(
-      <BoxRoot minSize={{ x: 1200, y: 0 }}>
+      <BoxRoot size={{ min: { x: 1200 } }}>
         <SizeProbe />
       </BoxRoot>,
     );
@@ -54,11 +54,40 @@ describe("BoxRoot", () => {
   });
 });
 
-describe("minSize", () => {
-  it("floors the coordinate space without growing the visual box", () => {
+describe("size limits", () => {
+  it("caps child-driven growth with size.max", () => {
     render(
       <BoxRoot>
-        <Box position={{ x: 0, y: 0 }} size={{ x: 100, y: 50 }} minSize={{ x: 300, y: 50 }}>
+        <Box size={{ max: { y: 60 } }}>
+          <Box size={{ x: 50, y: 100 }}>
+            <span data-testid="content" />
+          </Box>
+        </Box>
+      </BoxRoot>,
+    );
+    const parent = screen.getByTestId("content").parentElement?.parentElement;
+    expect(parent?.style.width).toBe("50px");
+    expect(parent?.style.height).toBe("60px");
+  });
+
+  it("anchors children to the max-clamped space", () => {
+    render(
+      <BoxRoot>
+        <Box size={{ x: 100, max: { y: 80 } }}>
+          <Box size={{ x: 50, y: 200 }} />
+          <Box pivot={{ from: "bottomLeft" }} size={{ x: 40, y: 10 }}>
+            <span data-testid="pinned" />
+          </Box>
+        </Box>
+      </BoxRoot>,
+    );
+    const pinned = screen.getByTestId("pinned").parentElement;
+    expect(pinned?.style.top).toBe("70px");
+  });
+  it("floors the coordinate space with size.min without growing the visual box", () => {
+    render(
+      <BoxRoot>
+        <Box position={{ x: 0, y: 0 }} size={{ x: 100, y: 50, min: { x: 300 } }}>
           <Box
             pivot={{ from: "topRight", to: "topRight" }}
             position={{ x: 0, y: 0 }}

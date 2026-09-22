@@ -28,18 +28,27 @@ const pivotSchema = z.enum([
 const axisSizeSchema = z.union([z.number(), z.literal("childTotals")]);
 const overflowModeSchema = z.enum(["visible", "clip", "scrollbar", "auto", "ellipsis"]);
 
+const sizeLimitSchema = z.union([
+  z.literal("childTotals"),
+  z.strictObject({ x: axisSizeSchema.optional(), y: axisSizeSchema.optional() }),
+]);
+
 const sizeSpecSchema = z
   .union([
     z.literal("childTotals"),
     z.literal("(function)"),
-    z.strictObject({ x: axisSizeSchema, y: axisSizeSchema }),
+    z.strictObject({
+      x: axisSizeSchema.optional(),
+      y: axisSizeSchema.optional(),
+      min: sizeLimitSchema.optional(),
+      max: sizeLimitSchema.optional(),
+    }),
   ])
   .optional();
 
 export const overrideSchema = z.strictObject({
   position: z.strictObject({ x: z.number(), y: z.number() }).optional(),
   size: sizeSpecSchema,
-  minSize: sizeSpecSchema,
   pivot: z.strictObject({ from: pivotSchema.optional(), to: pivotSchema.optional() }).optional(),
   relativeTo: z.enum(["parent", "siblings"]).optional(),
   stackMode: z.enum(["vertical", "horizontal", "verticalReverse", "horizontalReverse"]).optional(),
@@ -87,7 +96,6 @@ function selectionLabel(selection: DebugSelection): string {
 export function snapshotProps(input: {
   position: Vec2;
   size?: SizeSpec | { x?: number; y?: number };
-  minSize?: SizeSpec;
   pivot?: PivotPair;
   relativeTo?: RelativeTo;
   stackMode?: StackMode;
@@ -95,12 +103,10 @@ export function snapshotProps(input: {
   border?: BoxBorder;
 }): string {
   const size = typeof input.size === "function" ? "(function)" : input.size;
-  const minSize = typeof input.minSize === "function" ? "(function)" : input.minSize;
   return JSON.stringify(
     {
       position: input.position,
       size,
-      minSize,
       pivot: input.pivot,
       relativeTo: input.relativeTo,
       stackMode: input.stackMode,

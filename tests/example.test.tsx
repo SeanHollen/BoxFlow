@@ -35,7 +35,7 @@ describe("Recipes page", () => {
   it("recipe cards grow to include their demo areas under StrictMode", () => {
     render(
       <StrictMode>
-        <BoxRoot minSize={{ x: 1160, y: 0 }}>
+        <BoxRoot size={{ min: { x: 1160 } }}>
           <Recipes />
         </BoxRoot>
       </StrictMode>,

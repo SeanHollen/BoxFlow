@@ -11,12 +11,15 @@ import {
   borderToCss,
   childReach,
   childTotalsFromRects,
+  clampAxis,
   computeTopLeft,
   computeZRanks,
   overflowToCss,
   pivotFraction,
   previousRect,
+  resolveLimit,
   resolveSize,
+  sizeLimits,
   sizeValues,
 } from "./layout";
 import type {
@@ -54,7 +57,6 @@ export interface BoxBaseProps {
 
 export interface BoxProps extends BoxBaseProps {
   size?: SizeSpec;
-  minSize?: SizeSpec;
 }
 
 export function useReferenceRect(
@@ -78,7 +80,6 @@ export function useReferenceRect(
 interface EffectiveLayout {
   position: Vec2;
   size: SizeSpec;
-  minSize: SizeSpec | undefined;
   pivot: PivotPair | undefined;
   stackMode: StackMode | undefined;
   relativeTo: RelativeTo | undefined;
@@ -100,14 +101,9 @@ function mergeOverride(props: BoxProps, override: DebugOverride | undefined): Ef
     override?.size !== undefined && override.size !== "(function)"
       ? override.size
       : (props.size ?? "childTotals");
-  const minSize =
-    override?.minSize !== undefined && override.minSize !== "(function)"
-      ? override.minSize
-      : props.minSize;
   return {
     position: override?.position ?? props.position ?? ZERO_VEC,
     size,
-    minSize,
     pivot,
     stackMode,
     relativeTo: override?.relativeTo ?? props.relativeTo,
@@ -125,7 +121,7 @@ export function Box(props: BoxProps) {
     useChildRects();
   const [scrollOffset, setScrollOffset] = useState<Vec2>(ZERO_VEC);
 
-  const { position, size, minSize, pivot, stackMode, relativeTo, overflow, border } = mergeOverride(
+  const { position, size, pivot, stackMode, relativeTo, overflow, border } = mergeOverride(
     props,
     debug?.overrides[id],
   );
@@ -133,8 +129,14 @@ export function Box(props: BoxProps) {
   const { from, to } = attachFor(pivot, stackMode);
   const reference = useReferenceRect(id, relativeTo, stackMode);
   const totals = childTotalsFromRects(childRects);
-  const resolved = resolveSize(size, totals);
-  const minResolved = minSize === undefined ? ZERO_VEC : resolveSize(minSize, totals);
+  const raw = resolveSize(size, totals);
+  const limits = sizeLimits(size);
+  const minResolved = resolveLimit(limits.min, totals);
+  const maxResolved = resolveLimit(limits.max, totals);
+  const resolved = {
+    x: clampAxis(raw.x, undefined, maxResolved.x),
+    y: clampAxis(raw.y, undefined, maxResolved.y),
+  };
   const topLeft = computeTopLeft({ from, to, position, size: resolved, reference });
 
   const borderWidth = border?.width ?? 0;
@@ -143,24 +145,24 @@ export function Box(props: BoxProps) {
   const valueY = values.y;
   const resolvedX = resolved.x;
   const resolvedY = resolved.y;
-  const flooredX = Math.max(resolvedX, minResolved.x);
-  const flooredY = Math.max(resolvedY, minResolved.y);
+  const flooredX = clampAxis(resolvedX, minResolved.x, undefined);
+  const flooredY = clampAxis(resolvedY, minResolved.y, undefined);
   const isSticky = props.sticky === true;
   const topLeftX = isSticky ? position.x : topLeft.x;
   const topLeftY = isSticky ? position.y : topLeft.y;
   const value: BoxContextValue = {
     size: {
-      x: typeof valueX === "number" ? Math.max(valueX, minResolved.x) : valueX,
-      y: typeof valueY === "number" ? Math.max(valueY, minResolved.y) : valueY,
+      x: typeof valueX === "number" ? clampAxis(valueX, minResolved.x, maxResolved.x) : valueX,
+      y: typeof valueY === "number" ? clampAxis(valueY, minResolved.y, maxResolved.y) : valueY,
     },
     innerSizeValues: {
       x:
         typeof valueX === "number"
-          ? Math.max(0, Math.max(valueX, minResolved.x) - 2 * borderWidth)
+          ? Math.max(0, clampAxis(valueX, minResolved.x, maxResolved.x) - 2 * borderWidth)
           : valueX,
       y:
         typeof valueY === "number"
-          ? Math.max(0, Math.max(valueY, minResolved.y) - 2 * borderWidth)
+          ? Math.max(0, clampAxis(valueY, minResolved.y, maxResolved.y) - 2 * borderWidth)
           : valueY,
     },
     resolvedInnerSize: {
@@ -235,7 +237,6 @@ export function Box(props: BoxProps) {
             snapshot: snapshotProps({
               position,
               size,
-              minSize,
               pivot,
               relativeTo,
               stackMode,

@@ -42,7 +42,7 @@ An absolutely positioned rectangle.
 | Prop | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `position` | `{x, y}` | `{0, 0}` | Offset from the attach point, in pixels. +x is right, +y is down. |
-| `size` | `SizeSpec` | `"childTotals"` | Width and height. Plain pixels, child-driven, or a function of the child totals — see below. Omitted, the box hugs its children — content-hugging is the default; fixed sizes are the deliberate choice. |
+| `size` | `SizeSpec` | `"childTotals"` | Width and height: `{x?, y?, min?, max?}`, `"childTotals"`, or a function of the child totals — see below. Omitted axes hug the children; `min` floors the coordinate space, `max` caps the visual box. Content-hugging is the default; fixed sizes are the deliberate choice. |
 | `relativeTo` | `"parent" \| "siblings"` | `"parent"` | What this box positions against: the parent's interior, or the **previous sibling's rectangle**. |
 | `pivot` | `{from?, to?}` | `topLeft`/`topLeft` | `from` is the point on the reference (parent or previous sibling) that `position` is measured from; `to` is the point on **this box** that lands there. An unspecified `to` mirrors `from`, so `{from: "center"}` means center-to-center. |
 | `stackMode` | `"vertical" \| "horizontal" \| "verticalReverse" \| "horizontalReverse"` | — | Shorthand for the common sibling pivots: `vertical` stacks below the previous sibling, `horizontal` to its right, the `Reverse` forms above and to the left (gaps there are negative offsets, since +x/+y stay right/down). Implies `relativeTo="siblings"`. Cannot be combined with `pivot`. |
@@ -85,11 +85,13 @@ Sibling rectangles come from the same registration channel as `childTotals`, so 
 
 A child total is the **required space** on that axis: each child contributes its reach from the edge it's anchored to (a left-anchored child at `x: 12` with width 50 needs 62; a right-anchored child with a −16 offset and width 200 needs 216), and when a left-anchored and a right-anchored child share a latitude line (their y-ranges overlap), their reaches **add** — that sum is the width below which they'd collide. The total is the widest requirement across all lines; sibling-stacked children inherit the anchor of the chain they hang off. Raw text and non-`Box` elements don't count. Children report their rectangles up through context as they render, so a child-driven box resolves its pixel size one layout pass after its children appear, and re-resolves whenever they move or resize.
 
-#### minSize and overflow instead of collision
+#### size.min and size.max — limits instead of collision or unbounded growth
 
-`minSize` (same forms as `size`) doesn't change the box's visual size — it floors the **coordinate space children anchor into**. While the actual size is above the floor, edge-anchored children move with the edges as usual; below it, the space stops shrinking, children stop converging, and the content overflows the visual box for the `overflow` rule to handle. `minSize: "childTotals"` is CSS's min-content collapse point: shrink freely until things would touch, then scroll/clip instead of overlapping.
+`size.min` doesn't change the box's visual size — it floors the **coordinate space children anchor into**. While the actual size is above the floor, edge-anchored children move with the edges as usual; below it, the space stops shrinking, children stop converging, and the content overflows the visual box for the `overflow` rule to handle. `min: "childTotals"` is CSS's min-content collapse point: shrink freely until things would touch, then scroll/clip instead of overlapping.
 
-`BoxRoot` participates: it defaults to `overflow: auto` on both axes (scrollbars appear only when content actually overflows — override with its `overflow` prop) and takes a `minSize`, so a page laid out for 1160px gets a horizontal scrollbar below 1160 instead of colliding elements — the standard CSS page behavior.
+`size.max` is the other direction: it **caps the visual box**, so a content-hugging box grows with its children only up to the cap, after which content overflows and the `overflow` rule takes over — `size={{ max: { y: 400 } }}` with `overflow={{ y: "scrollbar" }}` is a list that hugs until 400px, then scrolls. Both limits take per-axis numbers or `"childTotals"`.
+
+`BoxRoot` participates: it defaults to `overflow: auto` on both axes (scrollbars appear only when content actually overflows — override with its `overflow` prop) and takes `size={{ min, max }}` limits on its measured space, so a page laid out for 1160px (`size={{ min: { x: 1160 } }}`) gets a horizontal scrollbar below 1160 instead of colliding elements — the standard CSS page behavior.
 
 **The recursion rule:** a child-driven axis is sized *by* its children, so its children cannot ask for its size — that's a cycle. On such an axis, `useParentBoxProps()` returns the string `"childTotals"` instead of a number (so `size` is typed `number | "childTotals"` per axis; the `resolvedAxis(value, fallback?)` helper narrows it when you know it's numeric). `pivot.from` anchoring still works inside child-driven boxes, since the box resolves real pixels internally.
 
@@ -143,8 +145,8 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 `<Box>`:
 
 - `position?: { x, y }` — default `{0, 0}`. Pixel offset from the attach point; +x right, +y down.
-- `size?: { x, y } | "childTotals" | { x: number | "childTotals", y: number | "childTotals" } | (xTotal, yTotal) => { x, y }` — default `"childTotals"`: an unsized box hugs its children's required space.
-- `minSize?: SizeSpec` — floors the coordinate space children anchor into (not the visual size); below the floor, content overflows instead of colliding.
+- `size?: { x?, y?, min?, max? } | "childTotals" | (xTotal, yTotal) => { x, y }` — axes are `number | "childTotals"` (default `"childTotals"`: hug the children's required space); `min`/`max` are per-axis limits (see above).
+- `size.min` / `size.max` — per-axis limits inside the size object: `min` floors the coordinate space children anchor into (content overflows instead of colliding); `max` caps the visual box (content-hugging stops growing and overflows instead). Both accept numbers or `"childTotals"`.
 - `pivot?: { from?: Pivot, to?: Pivot }` — attach points on the reference and on this box. Default `topLeft`/`topLeft`; an unspecified `to` mirrors `from`.
 - `stackMode?: "vertical" | "horizontal" | "verticalReverse" | "horizontalReverse"` — sibling-stacking shorthand (below / right / above / left of the previous sibling); excludes `pivot`.
 - `relativeTo?: "parent" | "siblings"` — what the box positions against. Default `"parent"`.
@@ -184,7 +186,7 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 
 - `debug?: boolean` — enables the debug inspector. Default `false`.
 - `overflow?: { x?, y? }` — default `{ x: "auto", y: "auto" }`: the page scrolls when content overflows.
-- `minSize?: SizeSpec` — floor for the page's coordinate space; below it, scroll instead of collapse.
+- `size?: { min?, max? }` — limits for the page's measured coordinate space; below `min`, scroll instead of collapse.
 - `zSort?: (a, b) => number` — comparator for its direct children's `zValue`s.
 - `style?: CSSProperties`
 - `children?: ReactNode`

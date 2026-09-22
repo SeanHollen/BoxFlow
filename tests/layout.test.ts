@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   attachFor,
+  resolveLimit,
   childTotalsFromRects,
   computeTopLeft,
   overflowToCss,
@@ -114,11 +115,32 @@ describe("resolveSize", () => {
     expect(resolveSize({ x: 10, y: "childTotals" }, totals)).toEqual({ x: 10, y: 50 });
   });
 
+  it("defaults missing axes to childTotals", () => {
+    expect(resolveSize({ x: 10 }, totals)).toEqual({ x: 10, y: 50 });
+  });
+
   it("calls a size function with the child totals", () => {
     expect(resolveSize((xt, yt) => ({ x: xt + 1, y: yt + 2 }), totals)).toEqual({
       x: 71,
       y: 52,
     });
+  });
+});
+
+describe("resolveLimit", () => {
+  const totals = { x: 70, y: 50 };
+
+  it("returns nothing for an absent limit", () => {
+    expect(resolveLimit(undefined, totals)).toEqual({});
+  });
+
+  it("expands the childTotals shorthand", () => {
+    expect(resolveLimit("childTotals", totals)).toEqual({ x: 70, y: 50 });
+  });
+
+  it("resolves per-axis numbers and childTotals", () => {
+    expect(resolveLimit({ y: 30 }, totals)).toEqual({ y: 30 });
+    expect(resolveLimit({ x: "childTotals" }, totals)).toEqual({ x: 70 });
   });
 });
 

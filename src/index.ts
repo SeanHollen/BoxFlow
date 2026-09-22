@@ -27,8 +27,11 @@ export {
   overflowToCss,
   pivotFraction,
   previousRect,
+  resolveLimit,
   resolveSize,
   resolvedAxis,
+  sizeLimits,
+  clampAxis,
 } from "./layout";
 export type { LayoutInput } from "./layout";
 export type {
@@ -43,6 +46,8 @@ export type {
   Pivot,
   PivotPair,
   RelativeTo,
+  SizeLimit,
+  SizeObject,
   SizeSpec,
   SizeValues,
   StackMode,

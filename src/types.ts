@@ -76,9 +76,18 @@ export interface BoxBorder {
 
 export type AxisSizeSpec = number | "childTotals";
 
+export type SizeLimit = "childTotals" | { x?: AxisSizeSpec; y?: AxisSizeSpec };
+
+export interface SizeObject {
+  x?: AxisSizeSpec;
+  y?: AxisSizeSpec;
+  min?: SizeLimit;
+  max?: SizeLimit;
+}
+
 export type SizeSpec =
   | "childTotals"
-  | { x: AxisSizeSpec; y: AxisSizeSpec }
+  | SizeObject
   | ((xChildTotal: number, yChildTotal: number) => Vec2);
 
 export interface SizeValues {

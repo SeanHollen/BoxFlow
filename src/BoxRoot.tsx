@@ -6,11 +6,12 @@ import { buildLayoutSnapshot } from "./inspect";
 import {
   ZERO_VEC,
   childTotalsFromRects,
+  clampAxis,
   computeZRanks,
   overflowToCss,
-  resolveSize,
+  resolveLimit,
 } from "./layout";
-import type { BoxOverflow, SizeSpec, Vec2, ZSort } from "./types";
+import type { BoxOverflow, SizeLimit, Vec2, ZSort } from "./types";
 
 export interface InspectOptions {
   url?: string;
@@ -23,7 +24,7 @@ export interface BoxRootProps {
   inspect?: boolean | InspectOptions;
   zSort?: ZSort;
   overflow?: BoxOverflow;
-  minSize?: SizeSpec;
+  size?: { min?: SizeLimit; max?: SizeLimit };
   children?: ReactNode;
 }
 
@@ -36,7 +37,7 @@ export function BoxRoot({
   inspect = false,
   zSort,
   overflow = DEFAULT_ROOT_OVERFLOW,
-  minSize,
+  size: sizeLimitsProp,
   children,
 }: BoxRootProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -96,9 +97,13 @@ export function BoxRoot({
 
   const value = useMemo(() => {
     if (!size) return undefined;
-    const minResolved =
-      minSize === undefined ? ZERO_VEC : resolveSize(minSize, childTotalsFromRects(childRects));
-    const floored = { x: Math.max(size.x, minResolved.x), y: Math.max(size.y, minResolved.y) };
+    const totals = childTotalsFromRects(childRects);
+    const minResolved = resolveLimit(sizeLimitsProp?.min, totals);
+    const maxResolved = resolveLimit(sizeLimitsProp?.max, totals);
+    const floored = {
+      x: clampAxis(clampAxis(size.x, undefined, maxResolved.x), minResolved.x, undefined),
+      y: clampAxis(clampAxis(size.y, undefined, maxResolved.y), minResolved.y, undefined),
+    };
     return {
       size: floored,
       innerSizeValues: floored,
@@ -113,7 +118,7 @@ export function BoxRoot({
     };
   }, [
     size,
-    minSize,
+    sizeLimitsProp,
     childRects,
     childZ,
     zSort,

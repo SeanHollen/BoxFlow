@@ -8,6 +8,7 @@ import type {
   OverflowMode,
   Pivot,
   PivotPair,
+  SizeLimit,
   SizeSpec,
   SizeValues,
   StackMode,
@@ -89,22 +90,43 @@ export function borderToCss(border: BoxBorder | undefined): CSSProperties {
 export function resolveSize(size: SizeSpec, childTotals: Vec2): Vec2 {
   if (size === "childTotals") return { x: childTotals.x, y: childTotals.y };
   if (typeof size === "function") return size(childTotals.x, childTotals.y);
+  const x = size.x ?? "childTotals";
+  const y = size.y ?? "childTotals";
   return {
-    x: size.x === "childTotals" ? childTotals.x : size.x,
-    y: size.y === "childTotals" ? childTotals.y : size.y,
+    x: x === "childTotals" ? childTotals.x : x,
+    y: y === "childTotals" ? childTotals.y : y,
   };
+}
+
+export function resolveLimit(
+  limit: SizeLimit | undefined,
+  childTotals: Vec2,
+): { x?: number; y?: number } {
+  if (limit === undefined) return {};
+  if (limit === "childTotals") return { x: childTotals.x, y: childTotals.y };
+  const out: { x?: number; y?: number } = {};
+  if (limit.x !== undefined) out.x = limit.x === "childTotals" ? childTotals.x : limit.x;
+  if (limit.y !== undefined) out.y = limit.y === "childTotals" ? childTotals.y : limit.y;
+  return out;
+}
+
+export function sizeLimits(size: SizeSpec): { min?: SizeLimit; max?: SizeLimit } {
+  if (size === "childTotals" || typeof size === "function") return {};
+  return { min: size.min, max: size.max };
 }
 
 export function sizeValues(size: SizeSpec): SizeValues {
   if (size === "childTotals" || typeof size === "function") {
     return { x: "childTotals", y: "childTotals" };
   }
-  return { x: size.x, y: size.y };
+  return { x: size.x ?? "childTotals", y: size.y ?? "childTotals" };
 }
 
-export function sizeNeedsChildTotals(size: SizeSpec): boolean {
-  if (size === "childTotals" || typeof size === "function") return true;
-  return size.x === "childTotals" || size.y === "childTotals";
+export function clampAxis(value: number, min: number | undefined, max: number | undefined): number {
+  let out = value;
+  if (max !== undefined) out = Math.min(out, max);
+  if (min !== undefined) out = Math.max(out, min);
+  return out;
 }
 
 export function anchorFromFraction(fraction: number): ChildAnchor {
