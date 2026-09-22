@@ -1,9 +1,9 @@
-# boxcomponents
+# BoxFlow
 
 Coordinate-based declarative layout for React. Instead of flow layout and CSS, every box is placed with explicit coordinates and sizes — like Unity's `RectTransform` or QML — and reads its parent's size through a hook.
 
 ```tsx
-import { Box, BoxRoot, useParentBoxProps } from "boxcomponents";
+import { Box, BoxRoot, useParentBoxProps } from "boxflow";
 
 function SplitBar() {
   const parentProps = useParentBoxProps();
@@ -227,7 +227,7 @@ Overrides are validated (bad JSON or wrong shapes show an inline error and chang
 
 Off by default, toggled like `debug`. With `inspect` on, the page continuously snapshots its layout as a JSON tree — every `Box`/`Text`, nested, with the exact corner coordinates of each rectangle (`topLeft`/`topRight`/`bottomRight`/`bottomLeft`, relative to the `BoxRoot` origin, read from the live DOM so it is ground truth, not intent). Two consumers:
 
-- **`window.__boxcomponentsTree()`** — returns the current snapshot on demand, for agents driving the browser directly.
+- **`window.__boxflowTree()`** — returns the current snapshot on demand, for agents driving the browser directly.
 - **The layout MCP server** (`mcp/server.mjs`, registered in `.mcp.json` so agents in this repo get it automatically). The page POSTs changed snapshots to it (default `http://localhost:4848/layout`, configurable via `inspect={{ url, intervalMs }}`); the server exposes two tools: `layout_tree` (the full latest tree) and `find_box` (matches against `name` props — another reason to name your boxes). If no snapshot has arrived, the tools say so instead of guessing.
 
 Coordinates are current *visual* positions (scrolled content reports where it is now), rounded to 2 decimals for stable diffs.

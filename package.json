@@ -1,5 +1,5 @@
 {
-  "name": "boxcomponents",
+  "name": "boxflow",
   "version": "0.1.0",
   "description": "Coordinate-based declarative layout for React: position boxes with pivots, x/y coordinates, and sizes derived from the parent box.",
   "type": "module",

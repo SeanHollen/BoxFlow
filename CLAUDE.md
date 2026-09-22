@@ -1,4 +1,4 @@
-# boxcomponents
+# BoxFlow
 
 Coordinate-based layout library for React. `npm run check` is the only verification command — it runs oxlint (type-aware), oxfmt, tsc, and vitest in order. Never run those tools individually, never `npm run build` unless shipping.
 

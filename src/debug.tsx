@@ -297,7 +297,7 @@ export function DebugProvider({ children }: { children: ReactNode }) {
               touchAction: "none",
             }}
           >
-            <span style={{ fontWeight: 600 }}>{`boxcomponents debug`}</span>
+            <span style={{ fontWeight: 600 }}>{`BoxFlow debug`}</span>
             <button
               type="button"
               aria-label="close debug panel"

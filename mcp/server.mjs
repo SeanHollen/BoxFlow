@@ -52,11 +52,11 @@ function findNodes(nodes, name, out) {
   return out;
 }
 
-const server = new McpServer({ name: "boxcomponents-layout", version: "0.1.0" });
+const server = new McpServer({ name: "boxflow-layout", version: "0.1.0" });
 
 server.tool(
   "layout_tree",
-  "Latest layout snapshot of the running boxcomponents app: a JSON tree of every Box/Text with the exact corner coordinates of each rectangle, relative to the BoxRoot origin. Ground truth read from the DOM.",
+  "Latest layout snapshot of the running BoxFlow app: a JSON tree of every Box/Text with the exact corner coordinates of each rectangle, relative to the BoxRoot origin. Ground truth read from the DOM.",
   {},
   async () => ({
     content: [

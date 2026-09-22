@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "boxcomponents-layout": {
+    "boxflow-layout": {
       "command": "node",
       "args": ["mcp/server.mjs"]
     }

@@ -42,27 +42,27 @@ describe("debug mode", () => {
   it("stays inert when debug is off", () => {
     renderDemo(false);
     pressCombo();
-    expect(screen.queryByText("boxcomponents debug")).toBeNull();
+    expect(screen.queryByText("BoxFlow debug")).toBeNull();
   });
 
   it("opens the panel with the key combo and outlines boxes", () => {
     renderDemo(true);
-    expect(screen.queryByText("boxcomponents debug")).toBeNull();
+    expect(screen.queryByText("BoxFlow debug")).toBeNull();
     pressCombo();
-    expect(screen.getByText("boxcomponents debug")).toBeTruthy();
+    expect(screen.getByText("BoxFlow debug")).toBeTruthy();
     fireEvent.click(screen.getByLabelText("outline boxes"));
     const el = screen.getByTestId("content").parentElement;
     expect(el?.style.outline).toContain("1px solid");
     pressCombo();
-    expect(screen.queryByText("boxcomponents debug")).toBeNull();
+    expect(screen.queryByText("BoxFlow debug")).toBeNull();
   });
 
   it("closes the panel with the close button", () => {
     renderDemo(true);
     pressCombo();
-    expect(screen.getByText("boxcomponents debug")).toBeTruthy();
+    expect(screen.getByText("BoxFlow debug")).toBeTruthy();
     fireEvent.click(screen.getByLabelText("close debug panel"));
-    expect(screen.queryByText("boxcomponents debug")).toBeNull();
+    expect(screen.queryByText("BoxFlow debug")).toBeNull();
   });
 
   it("highlights fixed-size boxes with unused space when toggled", () => {

@@ -35,7 +35,7 @@ describe("layout inspection", () => {
     );
     const snapshot = (
       window as unknown as Record<string, () => { tree: InspectNode[] }>
-    ).__boxcomponentsTree?.();
+    ).__boxflowTree?.();
     expect(snapshot).toBeTruthy();
     const tree = snapshot?.tree ?? [];
     expect(tree).toHaveLength(1);
@@ -54,12 +54,12 @@ describe("layout inspection", () => {
   });
 
   it("registers no global when inspect is off", () => {
-    delete (window as unknown as Record<string, unknown>).__boxcomponentsTree;
+    delete (window as unknown as Record<string, unknown>).__boxflowTree;
     render(
       <BoxRoot>
         <Box position={{ x: 0, y: 0 }} size={{ x: 10, y: 10 }} />
       </BoxRoot>,
     );
-    expect((window as unknown as Record<string, unknown>).__boxcomponentsTree).toBeUndefined();
+    expect((window as unknown as Record<string, unknown>).__boxflowTree).toBeUndefined();
   });
 });

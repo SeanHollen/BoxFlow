@@ -53,7 +53,7 @@ export function BoxRoot({
   useEffect(() => {
     if (!inspectOn) return;
     const snapshot = () => (ref.current ? buildLayoutSnapshot(ref.current) : undefined);
-    (window as unknown as Record<string, unknown>).__boxcomponentsTree = snapshot;
+    (window as unknown as Record<string, unknown>).__boxflowTree = snapshot;
     let lastSent = "";
     const timer = setInterval(() => {
       const current = snapshot();
@@ -76,7 +76,7 @@ export function BoxRoot({
     }, inspectInterval);
     return () => {
       clearInterval(timer);
-      delete (window as unknown as Record<string, unknown>).__boxcomponentsTree;
+      delete (window as unknown as Record<string, unknown>).__boxflowTree;
     };
   }, [inspectOn, inspectUrl, inspectInterval]);
 
