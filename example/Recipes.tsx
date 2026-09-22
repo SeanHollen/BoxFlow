@@ -20,7 +20,7 @@ function Recipe({
   return (
     <Box
       position={position}
-      size={(_xt, yt) => ({ x: width, y: yt + 12 })}
+      size={(_xt, yt) => ({ x: width, y: yt + 12, min: { y: 120 } })}
       border={{ width: 1, color: "#e0e0e0" }}
       style={{ backgroundColor: "#fff", borderRadius: "8px" }}
     >

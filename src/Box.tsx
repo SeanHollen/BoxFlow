@@ -17,9 +17,7 @@ import {
   overflowToCss,
   pivotFraction,
   previousRect,
-  resolveLimit,
-  resolveSize,
-  sizeLimits,
+  resolveSizing,
   sizeValues,
 } from "./layout";
 import type {
@@ -129,13 +127,12 @@ export function Box(props: BoxProps) {
   const { from, to } = attachFor(pivot, stackMode);
   const reference = useReferenceRect(id, relativeTo, stackMode);
   const totals = childTotalsFromRects(childRects);
-  const raw = resolveSize(size, totals);
-  const limits = sizeLimits(size);
-  const minResolved = resolveLimit(limits.min, totals);
-  const maxResolved = resolveLimit(limits.max, totals);
+  const sizing = resolveSizing(size, totals);
+  const minResolved = sizing.min;
+  const maxResolved = sizing.max;
   const resolved = {
-    x: clampAxis(raw.x, undefined, maxResolved.x),
-    y: clampAxis(raw.y, undefined, maxResolved.y),
+    x: clampAxis(sizing.size.x, undefined, maxResolved.x),
+    y: clampAxis(sizing.size.y, undefined, maxResolved.y),
   };
   const topLeft = computeTopLeft({ from, to, position, size: resolved, reference });
 

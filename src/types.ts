@@ -85,7 +85,14 @@ export interface SizeObject {
   max?: SizeLimit;
 }
 
-export type SizeSpec = SizeObject | ((xChildTotal: number, yChildTotal: number) => Vec2);
+export interface SizeResult {
+  x: number;
+  y: number;
+  min?: { x?: number; y?: number };
+  max?: { x?: number; y?: number };
+}
+
+export type SizeSpec = SizeObject | ((xChildTotal: number, yChildTotal: number) => SizeResult);
 
 export interface SizeValues {
   x: AxisSizeSpec;

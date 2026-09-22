@@ -96,6 +96,8 @@ visual box   = min(resolvedSize, max)
 anchor space = max(visual box, min)
 ```
 
+The function form carries its own limits: it may return `{ x, y, min?, max? }` with plain-number limits (you already hold the totals), so calculated sizing and the anchor-space floor compose — `size={(xt) => ({ x: 300, y: xt + 24, min: { x: 260 } })}`.
+
 `size.max` is the other direction: it **caps the visual box**, so a content-hugging box grows with its children only up to the cap, after which content overflows and the `overflow` rule takes over — `size={{ max: { y: 400 } }}` with `overflow={{ y: "scrollbar" }}` is a list that hugs until 400px, then scrolls. Both limits take per-axis numbers or `"childTotals"`.
 
 `BoxRoot` participates: it defaults to `overflow: auto` on both axes (scrollbars appear only when content actually overflows — override with its `overflow` prop) and takes `size={{ min, max }}` limits on its measured space, so a page laid out for 1160px (`size={{ min: { x: 1160 } }}`) gets a horizontal scrollbar below 1160 instead of colliding elements — the standard CSS page behavior.
@@ -152,7 +154,7 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 `<Box>`:
 
 - `position?: { x, y }` — default `{0, 0}`. Pixel offset from the attach point; +x right, +y down.
-- `size?: { x?, y?, min?, max? } | (xTotal, yTotal) => { x, y }` — axes are numbers; an omitted axis hugs the children's required space; `min`/`max` are per-axis limits taking numbers or `"childTotals"` (see above).
+- `size?: { x?, y?, min?, max? } | (xTotal, yTotal) => { x, y, min?, max? }` — axes are numbers; an omitted axis hugs the children's required space; `min`/`max` are per-axis limits taking numbers or `"childTotals"` (see above).
 - `size.min` / `size.max` — per-axis limits inside the size object: `min` floors the coordinate space children anchor into (content overflows instead of colliding); `max` caps the visual box (content-hugging stops growing and overflows instead). Both accept numbers or `"childTotals"`.
 - `pivot?: { from?: Pivot, to?: Pivot }` — attach points on the reference and on this box. Default `topLeft`/`topLeft`; an unspecified `to` mirrors `from`.
 - `stackMode?: "vertical" | "horizontal" | "verticalReverse" | "horizontalReverse"` — sibling-stacking shorthand (below / right / above / left of the previous sibling); excludes `pivot`.

@@ -104,9 +104,22 @@ export function resolveLimit(
   return out;
 }
 
-export function sizeLimits(size: SizeSpec): { min?: SizeLimit; max?: SizeLimit } {
-  if (typeof size === "function") return {};
-  return { min: size.min, max: size.max };
+export interface ResolvedSizing {
+  size: Vec2;
+  min: { x?: number; y?: number };
+  max: { x?: number; y?: number };
+}
+
+export function resolveSizing(spec: SizeSpec, childTotals: Vec2): ResolvedSizing {
+  if (typeof spec === "function") {
+    const out = spec(childTotals.x, childTotals.y);
+    return { size: { x: out.x, y: out.y }, min: out.min ?? {}, max: out.max ?? {} };
+  }
+  return {
+    size: { x: spec.x ?? childTotals.x, y: spec.y ?? childTotals.y },
+    min: resolveLimit(spec.min, childTotals),
+    max: resolveLimit(spec.max, childTotals),
+  };
 }
 
 export function sizeValues(size: SizeSpec): SizeValues {

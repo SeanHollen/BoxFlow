@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   attachFor,
   resolveLimit,
+  resolveSizing,
   childTotalsFromRects,
   computeTopLeft,
   overflowToCss,
@@ -115,6 +116,26 @@ describe("resolveSize", () => {
     expect(resolveSize((xt, yt) => ({ x: xt + 1, y: yt + 2 }), totals)).toEqual({
       x: 71,
       y: 52,
+    });
+  });
+});
+
+describe("resolveSizing", () => {
+  const totals = { x: 70, y: 50 };
+
+  it("surfaces limits returned by a size function", () => {
+    expect(resolveSizing((xt) => ({ x: 300, y: xt + 24, min: { x: 260 } }), totals)).toEqual({
+      size: { x: 300, y: 94 },
+      min: { x: 260 },
+      max: {},
+    });
+  });
+
+  it("resolves object specs with their limits", () => {
+    expect(resolveSizing({ x: 10, max: { y: 40 } }, totals)).toEqual({
+      size: { x: 10, y: 50 },
+      min: {},
+      max: { y: 40 },
     });
   });
 });

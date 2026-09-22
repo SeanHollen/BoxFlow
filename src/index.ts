@@ -29,8 +29,8 @@ export {
   previousRect,
   resolveLimit,
   resolveSize,
+  resolveSizing,
   resolvedAxis,
-  sizeLimits,
   clampAxis,
 } from "./layout";
 export type { LayoutInput } from "./layout";
@@ -48,6 +48,7 @@ export type {
   RelativeTo,
   SizeLimit,
   SizeObject,
+  SizeResult,
   SizeSpec,
   SizeValues,
   StackMode,

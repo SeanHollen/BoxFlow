@@ -84,6 +84,22 @@ describe("size limits", () => {
     const pinned = screen.getByTestId("pinned").parentElement;
     expect(pinned?.style.top).toBe("70px");
   });
+  it("honors min returned from a size function", () => {
+    render(
+      <BoxRoot>
+        <Box size={(xt) => ({ x: 100, y: xt + 10, min: { x: 300 } })}>
+          <Box pivot={{ from: "topRight" }} size={{ x: 40, y: 20 }}>
+            <span data-testid="fn-pinned" />
+          </Box>
+        </Box>
+      </BoxRoot>,
+    );
+    const outer = screen.getByTestId("fn-pinned").parentElement?.parentElement;
+    const pinned = screen.getByTestId("fn-pinned").parentElement;
+    expect(outer?.style.width).toBe("100px");
+    expect(pinned?.style.left).toBe("260px");
+  });
+
   it("floors the coordinate space with size.min without growing the visual box", () => {
     render(
       <BoxRoot>
