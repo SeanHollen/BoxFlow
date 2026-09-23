@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Box, Image, Text, resolvedAxis, useParentBoxProps } from "../src/index";
+import { Box, Image, Line, Text, resolvedAxis, useParentBoxProps } from "../src/index";
 import type { Vec2 } from "../src/index";
 
 const SPRITE = 48;
@@ -161,7 +161,6 @@ function Sprite({
         zValue={sprite.pos.y}
         src={sprite.img}
         alt={sprite.id}
-        fit="contain"
         style={highlighted ? { outline: "2px solid #1a73e8", borderRadius: "10px" } : undefined}
       />
       <Text
@@ -172,6 +171,28 @@ function Sprite({
         {label}
       </Text>
     </>
+  );
+}
+
+function ClosestPairLine({
+  sprites,
+  pairA,
+  pairB,
+}: {
+  sprites: SpriteState[];
+  pairA: string;
+  pairB: string;
+}) {
+  const a = sprites.find((s) => s.id === pairA);
+  const b = sprites.find((s) => s.id === pairB);
+  if (!a || !b) return undefined;
+  return (
+    <Line
+      name="closest-pair"
+      from={centerOf(a)}
+      to={centerOf(b)}
+      stroke={{ width: 2, color: "#1a73e8", dash: [5, 4], cap: "round" }}
+    />
   );
 }
 
@@ -198,7 +219,7 @@ function PlayfieldLayout() {
         size={{ x: size.x - 24 }}
         font={{ size: 11, color: "#80868b" }}
       >
-        {`<Image> sprites; zValue stacks lower ones on top; distances from Vec2 state`}
+        {`<Image> sprites; zValue stacks lower ones on top; <Line> tracks the closest pair`}
       </Text>
       <Box
         name="arena"
@@ -207,6 +228,7 @@ function PlayfieldLayout() {
         overflow={{ x: "clip", y: "clip" }}
         style={{ backgroundColor: "#f8f9fa", borderRadius: "6px" }}
       >
+        <ClosestPairLine sprites={sprites} pairA={pairA} pairB={pairB} />
         {sprites.map((s) => {
           const n = nearest.get(s.id);
           return (

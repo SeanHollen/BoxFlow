@@ -100,6 +100,11 @@ function IntrinsicText(props: IntrinsicTextProps) {
     if (typeof override.size.x === "number") sizeX = override.size.x;
     if (typeof override.size.y === "number") sizeY = override.size.y;
   }
+  const rotate = override?.rotate ?? props.rotate;
+  const flipX = sizeX !== undefined && sizeX < 0;
+  const flipY = sizeY !== undefined && sizeY < 0;
+  if (sizeX !== undefined) sizeX = Math.abs(sizeX);
+  if (sizeY !== undefined) sizeY = Math.abs(sizeY);
 
   const { from, to } = attachFor(pivot, stackMode);
   const reference = useReferenceRect(id, relativeTo, stackMode);
@@ -243,8 +248,14 @@ function IntrinsicText(props: IntrinsicTextProps) {
     cssWidth = "max-content";
     cssMaxWidth = parent.resolvedInnerSize.x;
   }
-  const transform =
-    own.x !== 0 || own.y !== 0 ? `translate(${-own.x * 100}%, ${-own.y * 100}%)` : undefined;
+  const transformParts: string[] = [];
+  if (own.x !== 0 || own.y !== 0) {
+    transformParts.push(`translate(${-own.x * 100}%, ${-own.y * 100}%)`);
+  }
+  if (rotate !== undefined && rotate !== 0) transformParts.push(`rotate(${rotate}deg)`);
+  if (flipX) transformParts.push("scaleX(-1)");
+  if (flipY) transformParts.push("scaleY(-1)");
+  const transform = transformParts.length > 0 ? transformParts.join(" ") : undefined;
 
   const layoutStyle: CSSProperties = {
     position: "absolute",

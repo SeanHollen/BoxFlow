@@ -137,6 +137,17 @@ Unlike `Box`, `Text`'s `size` is optional per axis, because text has an intrinsi
 
 Intrinsically sized text measures itself in the browser (a `ResizeObserver`, plus a pre-paint width search for the `{ y }` case), so it still registers correct rectangles with a `childTotals` parent — an auto-sized panel wraps unmeasured labels correctly. Absolutely positioned child `Box`es never contribute to a `Text`'s intrinsic size; only its text content does.
 
+### `<Line>` and `<Polygon>`
+
+Shape primitives for the playground/graphics side of layout — connectors, markers, decorations:
+
+```tsx
+<Line from={{ x: 20, y: 80 }} to={{ x: 180, y: 20 }} stroke={{ width: 2, color: "#1a73e8", dash: [4, 4] }} />
+<Polygon points={[{ x: 56, y: 10 }, { x: 86, y: 40 }, { x: 26, y: 40 }]} fill="#fde293" />
+```
+
+Shapes are drawn in the parent's coordinate space and only there: no `relativeTo`, `stackMode`, or `pivot` — a shape's points *are* its position. They also stand outside the layout system entirely: a shape never joins the sibling chain (a stacked `Box` after a `Line` attaches to the previous `Box`) and never contributes to a parent's `childTotals`. Sibling `Box` positions are only affected by other boxes; shapes annotate the space without occupying it.
+
 ### `useParentBoxProps(options?)`
 
 Returns `{ size: {x, y} }` for the nearest enclosing `Box` (or `BoxRoot`). Throws outside of one.
@@ -154,7 +165,7 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 `<Box>`:
 
 - `position?: { x, y }` — default `{0, 0}`. Pixel offset from the attach point; +x right, +y down.
-- `size?: { x?, y?, min?, max? } | (xTotal, yTotal) => { x, y, min?, max? }` — axes are numbers; an omitted axis hugs the children's required space; `min`/`max` are per-axis limits taking numbers or `"childTotals"` (see above).
+- `size?: { x?, y?, min?, max? } | (xTotal, yTotal) => { x, y, min?, max? }` — axes are numbers (a **negative axis flips the content** in that direction; layout uses the magnitude); an omitted axis hugs the children's required space; `min`/`max` are per-axis limits taking numbers or `"childTotals"` (see above).
 - `size.min` / `size.max` — per-axis limits inside the size object: `min` floors the coordinate space children anchor into (content overflows instead of colliding); `max` caps the visual box (content-hugging stops growing and overflows instead). Both accept numbers or `"childTotals"`.
 - `pivot?: { from?: Pivot, to?: Pivot }` — attach points on the reference and on this box. Default `topLeft`/`topLeft`; an unspecified `to` mirrors `from`.
 - `stackMode?: "vertical" | "horizontal" | "verticalReverse" | "horizontalReverse"` — sibling-stacking shorthand (below / right / above / left of the previous sibling); excludes `pivot`.
@@ -163,6 +174,7 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 - `border?: { width: number, color?: string, style?: "solid" | "dashed" | "dotted" | "double" }`
 - `zValue?: unknown` — stacking order among siblings. Numbers sort lowest→highest by default; anything else falls back to string comparison, or to the parent's `zSort`. Boxes without a `zValue` stay in DOM order beneath ranked ones. Pass referentially stable values (module-level consts, not inline object literals).
 - `zSort?: (a, b) => number` — comparator the **parent** provides for its children's `zValue`s, enabling arbitrary objects as z values.
+- `rotate?: number` — degrees, paint-only with SVG semantics: the box rotates visually around its center, but layout, registration, and `childTotals` all use the unrotated rectangle.
 - `sticky?: boolean` — pins the box inside the nearest scrollable ancestor via native CSS sticky (compositor-driven, zero lag); `position` becomes the pinned offset from the scroll container's top-left. Pivots/stacking don't apply to sticky boxes. Use this for pinning; use `useParentScroll()` for scroll-*data* (progress indicators, parallax), where a frame of lag is fine.
 - `name?: string` — label shown by the debug inspector.
 - `style?: PaintStyle` — paint-only styles (background, radius, shadow, opacity, outline, cursor, filter, transition, …); layout-flavored CSS is a type error.
@@ -175,21 +187,28 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 - `font?: { family?, size?, weight?, color?, lineHeight?, letterSpacing?, align?, style? }` — `align` is `"left" | "center" | "right"`; `style` is one of or an array of `"bold" | "italic" | "underline" | "strikethrough"`.
 - `baseline?: boolean` — `position.y` names the first line's **baseline** (the line the letters sit on) instead of the box top, so texts of different font sizes given the same y sit on the same line. Computed from canvas font metrics; approximate with exotic fonts or before webfonts load.
 
-`<Image>` — all `Box` props (`size` required), plus:
+`<Image>` — all `Box` props, plus:
 
 - `src: string`
 - `alt?: string`
-- `fit?: "cover" | "contain" | "fill" | "none" | "scaleDown"` — how the image fills the box. Default `"contain"`.
+- Sizing is the fit policy: both axes set → the image stretches to exactly that box; **one axis set → the other is derived from the image's natural aspect ratio** (no distortion); no size → the image's natural pixel size. A negative axis mirrors the image; derived axes appear once the image loads (cached images resolve immediately).
 
 `<Arrange>` — not a box: a rendering strategy for the children of whatever `Box` it sits in. It folds over items, giving each one the measured rectangles of the items before it — the primitive for wrap layouts, masonry, or any sequential placement you compute yourself. Its items are ordinary children of the enclosing `Box` (they count toward its `childTotals`, join its sibling chain, and so on):
 
 - `items: readonly T[]`
 - `render: (item, { index, prior, parentSize }) => ReactNode` — `prior` is the ordered list of already-measured `ChildRect`s for items before this one; `parentSize` is the enclosing box's inner pixel size. Each render should return one positioned element (wrap multi-part items in a single `Box`).
 
+`<Line>` / `<Polygon>` — parent-relative shapes outside the layout system (no sibling chain, no `childTotals`, no pivots):
+
+- `from: {x, y}`, `to: {x, y}` (`Line`) / `points: {x, y}[]` (`Polygon`) — parent coordinates.
+- `stroke?: { width?, color?, cap?: "butt" | "round" | "square", dash?: number[] }` — defaults: 1px, `currentColor`.
+- `fill?: string` (`Polygon` only) — default `none`.
+- `zValue?: unknown`, `name?: string` — same meaning as on `Box`; shapes take part in z-ranking and the inspector tree, just not in layout.
+
 `<Inset>` — floats inside a `Text`'s content so the words flow around it; it lives in the text flow, **not** the coordinate system (no `position`/`pivot`, doesn't register a rect):
 
 - `size: {x, y}` (required), `side?: "left" | "right"` (default left), `margin?: number` (default 8)
-- `src?`/`alt?`/`fit?` for an image inset, or arbitrary `children`.
+- `src?`/`alt?` for an image inset (stretched to `size`), or arbitrary `children`.
 
 `<BoxRoot>`:
 

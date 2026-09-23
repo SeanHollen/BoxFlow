@@ -1,6 +1,16 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { Box, BoxRoot, Image, Inset, Text, Arrange, useParentScroll } from "../src/index";
+import {
+  Box,
+  BoxRoot,
+  Image,
+  Inset,
+  Line,
+  Polygon,
+  Text,
+  Arrange,
+  useParentScroll,
+} from "../src/index";
 import type { ArrangeItemContext } from "../src/index";
 
 class ResizeObserverStub {
@@ -154,24 +164,176 @@ describe("useParentScroll", () => {
 });
 
 describe("Image", () => {
-  it("renders a positioned box containing a fitted img", () => {
+  it("stretches the img to its box", () => {
     render(
       <BoxRoot>
-        <Image
-          position={{ x: 5, y: 6 }}
-          size={{ x: 80, y: 60 }}
-          src="sprite.png"
-          alt="sprite"
-          fit="cover"
-        />
+        <Image position={{ x: 5, y: 6 }} size={{ x: 80, y: 60 }} src="sprite.png" alt="sprite" />
       </BoxRoot>,
     );
     const img = screen.getByAltText("sprite");
-    expect(img.style.objectFit).toBe("cover");
+    expect(img.style.objectFit).toBe("");
     expect(img.style.width).toBe("100%");
     const box = img.parentElement;
     expect(box?.style.left).toBe("5px");
     expect(box?.style.width).toBe("80px");
+  });
+});
+
+describe("shapes", () => {
+  it("draws a Line in parent coordinates with stroke padding", () => {
+    const view = render(
+      <BoxRoot>
+        <Box size={{ x: 400, y: 300 }}>
+          <Line from={{ x: 10, y: 20 }} to={{ x: 110, y: 80 }} stroke={{ width: 2 }} />
+        </Box>
+      </BoxRoot>,
+    );
+    const svg = view.container.querySelector("svg") as SVGSVGElement;
+    expect(svg.style.left).toBe("8px");
+    expect(svg.style.top).toBe("18px");
+    expect(svg.style.width).toBe("104px");
+    expect(svg.style.height).toBe("64px");
+    const line = svg.querySelector("line") as SVGLineElement;
+    expect(line.getAttribute("x1")).toBe("2");
+    expect(line.getAttribute("y1")).toBe("2");
+    expect(line.getAttribute("x2")).toBe("102");
+    expect(line.getAttribute("y2")).toBe("62");
+    expect(line.getAttribute("stroke-width")).toBe("2");
+  });
+
+  it("draws a Polygon from a point list", () => {
+    const view = render(
+      <BoxRoot>
+        <Polygon
+          points={[
+            { x: 20, y: 10 },
+            { x: 60, y: 10 },
+            { x: 40, y: 50 },
+          ]}
+          fill="#fde293"
+        />
+      </BoxRoot>,
+    );
+    const polygon = view.container.querySelector("polygon") as SVGPolygonElement;
+    expect(polygon.getAttribute("fill")).toBe("#fde293");
+    expect(polygon.getAttribute("points")).toBe("1,1 41,1 21,41");
+    const svg = polygon.ownerSVGElement as SVGSVGElement;
+    expect(svg.style.left).toBe("19px");
+    expect(svg.style.top).toBe("9px");
+  });
+
+  it("never affects sibling stacking or childTotals", () => {
+    render(
+      <BoxRoot>
+        <Box>
+          <Box size={{ x: 50, y: 20 }} />
+          <Line from={{ x: 0, y: 0 }} to={{ x: 500, y: 500 }} />
+          <Box stackMode="vertical" position={{ x: 0, y: 4 }} size={{ x: 50, y: 20 }}>
+            <span data-testid="stacked" />
+          </Box>
+        </Box>
+      </BoxRoot>,
+    );
+    const stacked = screen.getByTestId("stacked").parentElement;
+    expect(stacked?.style.top).toBe("24px");
+    const parent = stacked?.parentElement;
+    expect(parent?.style.width).toBe("50px");
+    expect(parent?.style.height).toBe("44px");
+  });
+});
+
+describe("Image proportional sizing", () => {
+  beforeAll(() => {
+    Object.defineProperty(HTMLImageElement.prototype, "naturalWidth", {
+      configurable: true,
+      get: () => 100,
+    });
+    Object.defineProperty(HTMLImageElement.prototype, "naturalHeight", {
+      configurable: true,
+      get: () => 50,
+    });
+  });
+
+  it("derives the missing axis from the natural aspect ratio", () => {
+    render(
+      <BoxRoot>
+        <Image size={{ x: 200 }} src="sprite.png" alt="wide" />
+      </BoxRoot>,
+    );
+    fireEvent.load(screen.getByAltText("wide"));
+    const box = screen.getByAltText("wide").parentElement;
+    expect(box?.style.width).toBe("200px");
+    expect(box?.style.height).toBe("100px");
+  });
+
+  it("uses the natural size when no size is given", () => {
+    render(
+      <BoxRoot>
+        <Image src="sprite.png" alt="natural" />
+      </BoxRoot>,
+    );
+    fireEvent.load(screen.getByAltText("natural"));
+    const box = screen.getByAltText("natural").parentElement;
+    expect(box?.style.width).toBe("100px");
+    expect(box?.style.height).toBe("50px");
+  });
+
+  it("keeps the flip sign while deriving proportionally", () => {
+    render(
+      <BoxRoot>
+        <Image size={{ y: -100 }} src="sprite.png" alt="flipped" />
+      </BoxRoot>,
+    );
+    fireEvent.load(screen.getByAltText("flipped"));
+    const box = screen.getByAltText("flipped").parentElement;
+    expect(box?.style.width).toBe("200px");
+    expect(box?.style.height).toBe("100px");
+    expect(box?.style.transform).toContain("scaleY(-1)");
+  });
+});
+
+describe("rotate and negative-size flips", () => {
+  it("rotates paint without touching layout", () => {
+    render(
+      <BoxRoot>
+        <Box position={{ x: 10, y: 20 }} size={{ x: 50, y: 30 }} rotate={-5}>
+          <span data-testid="content" />
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByTestId("content").parentElement;
+    expect(el?.style.left).toBe("10px");
+    expect(el?.style.width).toBe("50px");
+    expect(el?.style.transform).toContain("rotate(-5deg)");
+  });
+
+  it("flips content on a negative axis while laying out the magnitude", () => {
+    render(
+      <BoxRoot>
+        <Box position={{ x: 10, y: 20 }} size={{ x: -50, y: 30 }}>
+          <span data-testid="content" />
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByTestId("content").parentElement;
+    expect(el?.style.width).toBe("50px");
+    expect(el?.style.left).toBe("10px");
+    expect(el?.style.transform).toContain("scaleX(-1)");
+  });
+
+  it("counts flipped boxes by magnitude in childTotals", () => {
+    render(
+      <BoxRoot>
+        <Box>
+          <Box size={{ x: -50, y: -20 }}>
+            <span data-testid="content" />
+          </Box>
+        </Box>
+      </BoxRoot>,
+    );
+    const parent = screen.getByTestId("content").parentElement?.parentElement;
+    expect(parent?.style.width).toBe("50px");
+    expect(parent?.style.height).toBe("20px");
   });
 });
 

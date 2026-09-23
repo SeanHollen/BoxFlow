@@ -44,6 +44,7 @@ export interface BoxBaseProps {
   border?: BoxBorder;
   zValue?: unknown;
   zSort?: ZSort;
+  rotate?: number;
   sticky?: boolean;
   name?: string;
   style?: PaintStyle;
@@ -83,6 +84,7 @@ interface EffectiveLayout {
   relativeTo: RelativeTo | undefined;
   overflow: BoxOverflow | undefined;
   border: BoxBorder | undefined;
+  rotate: number | undefined;
 }
 
 function mergeOverride(props: BoxProps, override: DebugOverride | undefined): EffectiveLayout {
@@ -107,6 +109,7 @@ function mergeOverride(props: BoxProps, override: DebugOverride | undefined): Ef
     relativeTo: override?.relativeTo ?? props.relativeTo,
     overflow: override?.overflow ?? props.overflow,
     border: override?.border ?? props.border,
+    rotate: override?.rotate ?? props.rotate,
   };
 }
 
@@ -119,7 +122,7 @@ export function Box(props: BoxProps) {
     useChildRects();
   const [scrollOffset, setScrollOffset] = useState<Vec2>(ZERO_VEC);
 
-  const { position, size, pivot, stackMode, relativeTo, overflow, border } = mergeOverride(
+  const { position, size, pivot, stackMode, relativeTo, overflow, border, rotate } = mergeOverride(
     props,
     debug?.overrides[id],
   );
@@ -130,10 +133,17 @@ export function Box(props: BoxProps) {
   const sizing = resolveSizing(size, totals);
   const minResolved = sizing.min;
   const maxResolved = sizing.max;
+  const flipX = sizing.size.x < 0;
+  const flipY = sizing.size.y < 0;
   const resolved = {
-    x: clampAxis(sizing.size.x, undefined, maxResolved.x),
-    y: clampAxis(sizing.size.y, undefined, maxResolved.y),
+    x: clampAxis(Math.abs(sizing.size.x), undefined, maxResolved.x),
+    y: clampAxis(Math.abs(sizing.size.y), undefined, maxResolved.y),
   };
+  const transformParts: string[] = [];
+  if (rotate !== undefined && rotate !== 0) transformParts.push(`rotate(${rotate}deg)`);
+  if (flipX) transformParts.push("scaleX(-1)");
+  if (flipY) transformParts.push("scaleY(-1)");
+  const paintTransform = transformParts.length > 0 ? transformParts.join(" ") : undefined;
   const topLeft = computeTopLeft({ from, to, position, size: resolved, reference });
 
   const borderWidth = border?.width ?? 0;
@@ -239,6 +249,7 @@ export function Box(props: BoxProps) {
               stackMode,
               overflow,
               border,
+              rotate,
             }),
           });
         }
@@ -273,6 +284,7 @@ export function Box(props: BoxProps) {
           width: resolvedX,
           height: resolvedY,
           zIndex: parent.zRanks.get(id),
+          transform: paintTransform,
           boxSizing: "border-box",
           ...borderToCss(border),
           ...overflowToCss(overflow),

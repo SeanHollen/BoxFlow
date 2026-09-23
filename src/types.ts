@@ -99,6 +99,13 @@ export interface SizeValues {
   y: AxisSizeSpec;
 }
 
+export interface ShapeStroke {
+  width?: number;
+  color?: string;
+  cap?: "butt" | "round" | "square";
+  dash?: readonly number[];
+}
+
 export type ChildAnchor = "start" | "center" | "end";
 
 export interface ChildRect {

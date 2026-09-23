@@ -54,6 +54,7 @@ export const overrideSchema = z.strictObject({
   overflow: z
     .strictObject({ x: overflowModeSchema.optional(), y: overflowModeSchema.optional() })
     .optional(),
+  rotate: z.number().optional(),
   border: z
     .strictObject({
       width: z.number(),
@@ -100,6 +101,7 @@ export function snapshotProps(input: {
   stackMode?: StackMode;
   overflow?: BoxOverflow;
   border?: BoxBorder;
+  rotate?: number;
 }): string {
   const size = typeof input.size === "function" ? "(function)" : input.size;
   return JSON.stringify(
@@ -111,6 +113,7 @@ export function snapshotProps(input: {
       stackMode: input.stackMode,
       overflow: input.overflow,
       border: input.border,
+      rotate: input.rotate,
     },
     undefined,
     2,

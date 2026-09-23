@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
-import { Box, Text, Arrange, resolvedAxis, useParentBoxProps } from "../src/index";
+import { Box, Line, Polygon, Text, Arrange, resolvedAxis, useParentBoxProps } from "../src/index";
 import type { PivotPair, Vec2 } from "../src/index";
 
 function Recipe({
@@ -306,22 +306,62 @@ function ProgressDemo() {
   );
 }
 
-function EscapeHatchDemo() {
+function RotateFlipDemo() {
   return (
-    <Box
-      position={{ x: 24, y: 16 }}
-      size={{ x: 130, y: 44 }}
-      dangerousPositionStyles={{ transform: "rotate(-5deg)" }}
-      style={{
-        backgroundColor: "#fde293",
-        borderRadius: "6px",
-        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.15)",
-      }}
-    >
-      <Text pivot={{ from: "center" }} font={{ size: 12, weight: 600, color: "#3c4043" }}>
-        {`rotated sticker`}
+    <>
+      <Box
+        position={{ x: 24, y: 16 }}
+        size={{ x: 130, y: 44 }}
+        rotate={-5}
+        style={{
+          backgroundColor: "#fde293",
+          borderRadius: "6px",
+          boxShadow: "0 2px 6px rgba(0, 0, 0, 0.15)",
+        }}
+      >
+        <Text pivot={{ from: "center" }} font={{ size: 12, weight: 600, color: "#3c4043" }}>
+          {`rotated sticker`}
+        </Text>
+      </Box>
+      <Text
+        stackMode="vertical"
+        position={{ x: 0, y: 14 }}
+        size={{ x: -150, y: 16 }}
+        font={{ size: 11, color: "#5f6368" }}
+      >
+        {`mirrored by size.x < 0`}
       </Text>
-    </Box>
+    </>
+  );
+}
+
+function ShapesDemo() {
+  const size = useDemoSize();
+  const lineFrom = { x: 110, y: 64 };
+  const lineTo = { x: size.x - 12, y: 14 };
+  return (
+    <>
+      <Polygon
+        points={[
+          { x: 56, y: 10 },
+          { x: 86, y: 40 },
+          { x: 56, y: 70 },
+          { x: 26, y: 40 },
+        ]}
+        fill="#fde293"
+        stroke={{ width: 1.5, color: "#f9ab00" }}
+      />
+      <Line from={lineFrom} to={lineTo} stroke={{ width: 2, color: "#1a73e8", dash: [4, 4] }} />
+      {[lineFrom, lineTo].map((p) => (
+        <Box
+          key={`${p.x},${p.y}`}
+          pivot={{ to: "center" }}
+          position={p}
+          size={{ x: 8, y: 8 }}
+          style={{ backgroundColor: "#1a73e8", borderRadius: "50%" }}
+        />
+      ))}
+    </>
   );
 }
 
@@ -383,11 +423,18 @@ const RECIPES: RecipeSpec[] = [
     Demo: ProgressDemo,
   },
   {
-    title: "Escape hatch",
-    css: "CSS you genuinely need → dangerousPositionStyles={{ transform: rotate(−5°) }}",
+    title: "Lines & polygons",
+    css: "SVG shapes → <Line from/to> + <Polygon points>, drawn in parent coordinates",
     w: 222,
-    demoH: 76,
-    Demo: EscapeHatchDemo,
+    demoH: 80,
+    Demo: ShapesDemo,
+  },
+  {
+    title: "Rotate & flip",
+    css: "CSS: transform rotate / scaleX(−1) → rotate prop + a negative size axis",
+    w: 222,
+    demoH: 104,
+    Demo: RotateFlipDemo,
   },
 ];
 

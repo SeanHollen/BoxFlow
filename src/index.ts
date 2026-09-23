@@ -7,9 +7,11 @@ export type { InspectNode, InspectSnapshot } from "./inspect";
 export { Text } from "./Text";
 export type { TextProps, TextSize } from "./Text";
 export { Image } from "./Image";
-export type { ImageFit, ImageProps } from "./Image";
+export type { ImageProps } from "./Image";
 export { Inset } from "./Inset";
 export type { InsetProps } from "./Inset";
+export { Line, Polygon } from "./shapes";
+export type { LineProps, PolygonProps } from "./shapes";
 export { Arrange } from "./Arrange";
 export type { ArrangeItemContext, ArrangeProps } from "./Arrange";
 export { fontBaselineOffset } from "./metrics";
@@ -49,6 +51,7 @@ export type {
   SizeLimit,
   SizeObject,
   SizeResult,
+  ShapeStroke,
   SizeSpec,
   SizeValues,
   StackMode,
