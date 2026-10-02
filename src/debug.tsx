@@ -11,7 +11,7 @@ import type {
   SizeValues,
   StackMode,
   Vec2,
-} from "./types";
+} from "./types.js";
 
 const pivotSchema = z.enum([
   "topLeft",

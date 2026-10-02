@@ -1,7 +1,7 @@
 import { useId, useLayoutEffect } from "react";
 import type { CSSProperties } from "react";
-import { useBoxContext } from "./context";
-import type { ShapeStroke, Vec2 } from "./types";
+import { useBoxContext } from "./context.js";
+import type { ShapeStroke, Vec2 } from "./types.js";
 
 export interface LineProps {
   from: Vec2;

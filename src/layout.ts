@@ -15,7 +15,7 @@ import type {
   TextFont,
   Vec2,
   ZSort,
-} from "./types";
+} from "./types.js";
 
 const PIVOT_FRACTIONS: Record<Pivot, Vec2> = {
   topLeft: { x: 0, y: 0 },

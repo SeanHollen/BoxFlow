@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { SyntheticEvent } from "react";
-import { Box } from "./Box";
-import type { BoxBaseProps } from "./Box";
-import type { SizeSpec, Vec2 } from "./types";
+import { Box } from "./Box.js";
+import type { BoxBaseProps } from "./Box.js";
+import type { SizeSpec, Vec2 } from "./types.js";
 
 export interface ImageProps extends BoxBaseProps {
   size?: SizeSpec;

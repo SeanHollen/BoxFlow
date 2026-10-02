@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { BoxContext, useChildRects } from "./context";
-import { DebugProvider } from "./debug";
-import { buildLayoutSnapshot } from "./inspect";
+import { BoxContext, useChildRects } from "./context.js";
+import { DebugProvider } from "./debug.js";
+import { buildLayoutSnapshot } from "./inspect.js";
 import {
   ZERO_VEC,
   childTotalsFromRects,
@@ -10,8 +10,8 @@ import {
   computeZRanks,
   overflowToCss,
   resolveLimit,
-} from "./layout";
-import type { BoxOverflow, SizeLimit, Vec2, ZSort } from "./types";
+} from "./layout.js";
+import type { BoxOverflow, SizeLimit, Vec2, ZSort } from "./types.js";
 
 export interface InspectOptions {
   url?: string;

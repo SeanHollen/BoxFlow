@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useState } from "react";
 import type { ReactNode } from "react";
-import { BoxContext, useBoxContext } from "./context";
-import type { BoxContextValue, ChildRect, Vec2 } from "./types";
+import { BoxContext, useBoxContext } from "./context.js";
+import type { BoxContextValue, ChildRect, Vec2 } from "./types.js";
 
 export interface ArrangeItemContext {
   index: number;

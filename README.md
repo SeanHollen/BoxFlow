@@ -262,6 +262,29 @@ Two things to keep in mind:
 - Absolute children resolve against the parent's *padding box* (inside its border). Use the `border` prop rather than `style.border`: the library subtracts it from the anchor math and from `useParentBoxProps({ countBorder: true })`, while a border smuggled in via `style` is invisible to it.
 - CSS coerces `overflow: visible` on one axis to `auto` when the other axis is `clip`/`scrollbar`, so `{ x: "visible", y: "scrollbar" }` clips on x anyway. This is a browser rule, not a library choice.
 
+## Installing in another project
+
+The package ships compiled ESM plus type declarations in `dist/` (nothing else). From another project, install it straight from this directory:
+
+```
+npm install ~/code/boxcomponents
+```
+
+or as a tarball, which snapshots the current build instead of symlinking:
+
+```
+cd ~/code/boxcomponents && npm pack
+npm install ~/code/boxcomponents/boxflow-0.1.0.tgz
+```
+
+Then:
+
+```tsx
+import { Box, BoxRoot, Text } from "boxflow";
+```
+
+`react >= 18` is a peer dependency. The directory install is a symlink, so `npm run build` here is what updates consumers; `prepare` runs the build automatically on install from a path or git URL.
+
 ## Development
 
 ```

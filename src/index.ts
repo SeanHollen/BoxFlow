@@ -1,23 +1,23 @@
-export { Box } from "./Box";
-export type { BoxBaseProps, BoxProps } from "./Box";
-export { BoxRoot } from "./BoxRoot";
-export type { BoxRootProps, InspectOptions } from "./BoxRoot";
-export { buildLayoutSnapshot, buildLayoutTree } from "./inspect";
-export type { InspectNode, InspectSnapshot } from "./inspect";
-export { Text } from "./Text";
-export type { TextProps, TextSize } from "./Text";
-export { Image } from "./Image";
-export type { ImageProps } from "./Image";
-export { Inset } from "./Inset";
-export type { InsetProps } from "./Inset";
-export { Ellipse, Line, Polygon } from "./shapes";
-export type { EllipseProps, LineProps, PolygonProps } from "./shapes";
-export { Arrange } from "./Arrange";
-export type { ArrangeItemContext, ArrangeProps } from "./Arrange";
-export { fontBaselineOffset } from "./metrics";
-export { useParentBoxProps, useParentScroll } from "./context";
-export type { ParentBoxPropsOptions } from "./context";
-export type { DebugOverride } from "./debug";
+export { Box } from "./Box.js";
+export type { BoxBaseProps, BoxProps } from "./Box.js";
+export { BoxRoot } from "./BoxRoot.js";
+export type { BoxRootProps, InspectOptions } from "./BoxRoot.js";
+export { buildLayoutSnapshot, buildLayoutTree } from "./inspect.js";
+export type { InspectNode, InspectSnapshot } from "./inspect.js";
+export { Text } from "./Text.js";
+export type { TextProps, TextSize } from "./Text.js";
+export { Image } from "./Image.js";
+export type { ImageProps } from "./Image.js";
+export { Inset } from "./Inset.js";
+export type { InsetProps } from "./Inset.js";
+export { Ellipse, Line, Polygon } from "./shapes.js";
+export type { EllipseProps, LineProps, PolygonProps } from "./shapes.js";
+export { Arrange } from "./Arrange.js";
+export type { ArrangeItemContext, ArrangeProps } from "./Arrange.js";
+export { fontBaselineOffset } from "./metrics.js";
+export { useParentBoxProps, useParentScroll } from "./context.js";
+export type { ParentBoxPropsOptions } from "./context.js";
+export type { DebugOverride } from "./debug.js";
 export {
   attachFor,
   borderToCss,
@@ -34,8 +34,8 @@ export {
   resolveSizing,
   resolvedAxis,
   clampAxis,
-} from "./layout";
-export type { LayoutInput } from "./layout";
+} from "./layout.js";
+export type { LayoutInput } from "./layout.js";
 export type {
   AxisSizeSpec,
   BoxBorder,
@@ -59,4 +59,4 @@ export type {
   TextStyle,
   Vec2,
   ZSort,
-} from "./types";
+} from "./types.js";

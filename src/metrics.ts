@@ -1,4 +1,4 @@
-import type { TextFont } from "./types";
+import type { TextFont } from "./types.js";
 
 let metricsContext: CanvasRenderingContext2D | null | undefined;
 

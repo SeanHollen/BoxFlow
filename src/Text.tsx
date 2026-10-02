@@ -1,9 +1,9 @@
 import { useContext, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent } from "react";
-import { Box, useReferenceRect } from "./Box";
-import type { BoxBaseProps } from "./Box";
-import { BoxContext, useBoxContext, useChildRects } from "./context";
-import { DebugContext, debugOutline, snapshotProps } from "./debug";
+import { Box, useReferenceRect } from "./Box.js";
+import type { BoxBaseProps } from "./Box.js";
+import { BoxContext, useBoxContext, useChildRects } from "./context.js";
+import { DebugContext, debugOutline, snapshotProps } from "./debug.js";
 import {
   ZERO_VEC,
   anchorFromFraction,
@@ -15,9 +15,9 @@ import {
   overflowToCss,
   pivotFraction,
   previousRect,
-} from "./layout";
-import { fontBaselineOffset } from "./metrics";
-import type { BoxContextValue, ChildAnchor, TextFont, Vec2 } from "./types";
+} from "./layout.js";
+import { fontBaselineOffset } from "./metrics.js";
+import type { BoxContextValue, ChildAnchor, TextFont, Vec2 } from "./types.js";
 
 export interface TextSize {
   x?: number;

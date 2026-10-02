@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import type { PaintStyle, Vec2 } from "./types";
+import type { PaintStyle, Vec2 } from "./types.js";
 
 export interface InsetProps {
   size: Vec2;

@@ -1,8 +1,8 @@
 import { useContext, useId, useLayoutEffect, useState } from "react";
 import type { CSSProperties, MouseEvent, ReactNode, UIEvent } from "react";
-import { BoxContext, useBoxContext, useChildRects } from "./context";
-import { DebugContext, deadSpaceStyle, debugOutline, snapshotProps } from "./debug";
-import type { DebugKind, DebugOverride } from "./debug";
+import { BoxContext, useBoxContext, useChildRects } from "./context.js";
+import { DebugContext, deadSpaceStyle, debugOutline, snapshotProps } from "./debug.js";
+import type { DebugKind, DebugOverride } from "./debug.js";
 import {
   ZERO_RECT,
   ZERO_VEC,
@@ -19,7 +19,7 @@ import {
   previousRect,
   resolveSizing,
   sizeValues,
-} from "./layout";
+} from "./layout.js";
 import type {
   BoxBorder,
   BoxContextValue,
@@ -33,7 +33,7 @@ import type {
   StackMode,
   Vec2,
   ZSort,
-} from "./types";
+} from "./types.js";
 
 export interface BoxBaseProps {
   position?: Vec2;

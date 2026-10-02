@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useState } from "react";
-import type { BoxContextValue, ChildRect, ParentBoxProps, Vec2 } from "./types";
+import type { BoxContextValue, ChildRect, ParentBoxProps, Vec2 } from "./types.js";
 
 function sameRect(a: ChildRect, b: ChildRect): boolean {
   return a.left === b.left && a.top === b.top && a.right === b.right && a.bottom === b.bottom;

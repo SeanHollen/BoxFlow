@@ -19,7 +19,8 @@
     "check": "oxlint --type-aware src/ tests/ example/ && oxfmt --write src/ tests/ example/ && tsc --noEmit && vitest run",
     "test": "vitest run",
     "dev": "vite example",
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "npm run build"
   },
   "peerDependencies": {
     "react": ">=18"
