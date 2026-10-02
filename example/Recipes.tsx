@@ -1,5 +1,14 @@
 import type { ComponentType, ReactNode } from "react";
-import { Box, Line, Polygon, Text, Arrange, resolvedAxis, useParentBoxProps } from "../src/index";
+import {
+  Box,
+  Ellipse,
+  Line,
+  Polygon,
+  Text,
+  Arrange,
+  resolvedAxis,
+  useParentBoxProps,
+} from "../src/index";
 import type { PivotPair, Vec2 } from "../src/index";
 
 function Recipe({
@@ -336,9 +345,8 @@ function RotateFlipDemo() {
 }
 
 function ShapesDemo() {
-  const size = useDemoSize();
-  const lineFrom = { x: 110, y: 64 };
-  const lineTo = { x: size.x - 12, y: 14 };
+  const lineFrom = { x: 86, y: 40 };
+  const lineTo = { x: 114, y: 44 };
   return (
     <>
       <Polygon
@@ -351,15 +359,15 @@ function ShapesDemo() {
         fill="#fde293"
         stroke={{ width: 1.5, color: "#f9ab00" }}
       />
+      <Ellipse
+        center={{ x: 148, y: 44 }}
+        radius={{ x: 34, y: 22 }}
+        fill="#e8f0fe"
+        stroke={{ width: 1.5, color: "#1a73e8" }}
+      />
       <Line from={lineFrom} to={lineTo} stroke={{ width: 2, color: "#1a73e8", dash: [4, 4] }} />
       {[lineFrom, lineTo].map((p) => (
-        <Box
-          key={`${p.x},${p.y}`}
-          pivot={{ to: "center" }}
-          position={p}
-          size={{ x: 8, y: 8 }}
-          style={{ backgroundColor: "#1a73e8", borderRadius: "50%" }}
-        />
+        <Ellipse key={`${p.x},${p.y}`} center={p} radius={4} fill="#1a73e8" />
       ))}
     </>
   );
@@ -424,7 +432,7 @@ const RECIPES: RecipeSpec[] = [
   },
   {
     title: "Lines & polygons",
-    css: "SVG shapes → <Line from/to> + <Polygon points>, drawn in parent coordinates",
+    css: "SVG shapes → <Line>, <Polygon>, <Ellipse>, drawn in parent coordinates",
     w: 222,
     demoH: 80,
     Demo: ShapesDemo,

@@ -19,6 +19,15 @@ export interface PolygonProps {
   name?: string;
 }
 
+export interface EllipseProps {
+  center: Vec2;
+  radius: number | Vec2;
+  stroke?: ShapeStroke;
+  fill?: string;
+  zValue?: unknown;
+  name?: string;
+}
+
 interface ShapeFrame {
   style: CSSProperties;
   offset: Vec2;
@@ -72,6 +81,31 @@ export function Line({ from, to, stroke, zValue, name }: LineProps) {
         y1={from.y + offset.y}
         x2={to.x + offset.x}
         y2={to.y + offset.y}
+        {...strokeAttrs(stroke)}
+      />
+    </svg>
+  );
+}
+
+export function Ellipse({ center, radius, stroke, fill, zValue, name }: EllipseProps) {
+  const id = useId();
+  const zIndex = useShapeZ(id, zValue);
+  const r = typeof radius === "number" ? { x: radius, y: radius } : radius;
+  const { style, offset } = shapeFrame(
+    [
+      { x: center.x - r.x, y: center.y - r.y },
+      { x: center.x + r.x, y: center.y + r.y },
+    ],
+    stroke,
+  );
+  return (
+    <svg data-bc-kind="ellipse" data-bc-name={name} style={{ ...style, zIndex }}>
+      <ellipse
+        cx={center.x + offset.x}
+        cy={center.y + offset.y}
+        rx={r.x}
+        ry={r.y}
+        fill={fill ?? "none"}
         {...strokeAttrs(stroke)}
       />
     </svg>

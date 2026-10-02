@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import {
   Box,
   BoxRoot,
+  Ellipse,
   Image,
   Inset,
   Line,
@@ -220,6 +221,41 @@ describe("shapes", () => {
     const svg = polygon.ownerSVGElement as SVGSVGElement;
     expect(svg.style.left).toBe("19px");
     expect(svg.style.top).toBe("9px");
+  });
+
+  it("draws an Ellipse from center and per-axis radius", () => {
+    const view = render(
+      <BoxRoot>
+        <Ellipse
+          center={{ x: 60, y: 40 }}
+          radius={{ x: 30, y: 20 }}
+          stroke={{ width: 2 }}
+          fill="#e8f0fe"
+        />
+      </BoxRoot>,
+    );
+    const ellipse = view.container.querySelector("ellipse") as SVGEllipseElement;
+    expect(ellipse.getAttribute("cx")).toBe("32");
+    expect(ellipse.getAttribute("cy")).toBe("22");
+    expect(ellipse.getAttribute("rx")).toBe("30");
+    expect(ellipse.getAttribute("ry")).toBe("20");
+    expect(ellipse.getAttribute("fill")).toBe("#e8f0fe");
+    const svg = ellipse.ownerSVGElement as SVGSVGElement;
+    expect(svg.style.left).toBe("28px");
+    expect(svg.style.top).toBe("18px");
+    expect(svg.style.width).toBe("64px");
+    expect(svg.style.height).toBe("44px");
+  });
+
+  it("treats a number radius as a circle", () => {
+    const view = render(
+      <BoxRoot>
+        <Ellipse center={{ x: 50, y: 50 }} radius={15} />
+      </BoxRoot>,
+    );
+    const ellipse = view.container.querySelector("ellipse") as SVGEllipseElement;
+    expect(ellipse.getAttribute("rx")).toBe("15");
+    expect(ellipse.getAttribute("ry")).toBe("15");
   });
 
   it("never affects sibling stacking or childTotals", () => {

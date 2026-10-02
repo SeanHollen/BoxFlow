@@ -137,13 +137,14 @@ Unlike `Box`, `Text`'s `size` is optional per axis, because text has an intrinsi
 
 Intrinsically sized text measures itself in the browser (a `ResizeObserver`, plus a pre-paint width search for the `{ y }` case), so it still registers correct rectangles with a `childTotals` parent — an auto-sized panel wraps unmeasured labels correctly. Absolutely positioned child `Box`es never contribute to a `Text`'s intrinsic size; only its text content does.
 
-### `<Line>` and `<Polygon>`
+### `<Line>`, `<Polygon>`, and `<Ellipse>`
 
 Shape primitives for the playground/graphics side of layout — connectors, markers, decorations:
 
 ```tsx
 <Line from={{ x: 20, y: 80 }} to={{ x: 180, y: 20 }} stroke={{ width: 2, color: "#1a73e8", dash: [4, 4] }} />
 <Polygon points={[{ x: 56, y: 10 }, { x: 86, y: 40 }, { x: 26, y: 40 }]} fill="#fde293" />
+<Ellipse center={{ x: 148, y: 44 }} radius={{ x: 34, y: 22 }} fill="#e8f0fe" />
 ```
 
 Shapes are drawn in the parent's coordinate space and only there: no `relativeTo`, `stackMode`, or `pivot` — a shape's points *are* its position. They also stand outside the layout system entirely: a shape never joins the sibling chain (a stacked `Box` after a `Line` attaches to the previous `Box`) and never contributes to a parent's `childTotals`. Sibling `Box` positions are only affected by other boxes; shapes annotate the space without occupying it.
@@ -198,11 +199,11 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 - `items: readonly T[]`
 - `render: (item, { index, prior, parentSize }) => ReactNode` — `prior` is the ordered list of already-measured `ChildRect`s for items before this one; `parentSize` is the enclosing box's inner pixel size. Each render should return one positioned element (wrap multi-part items in a single `Box`).
 
-`<Line>` / `<Polygon>` — parent-relative shapes outside the layout system (no sibling chain, no `childTotals`, no pivots):
+`<Line>` / `<Polygon>` / `<Ellipse>` — parent-relative shapes outside the layout system (no sibling chain, no `childTotals`, no pivots):
 
-- `from: {x, y}`, `to: {x, y}` (`Line`) / `points: {x, y}[]` (`Polygon`) — parent coordinates.
+- `from: {x, y}`, `to: {x, y}` (`Line`) / `points: {x, y}[]` (`Polygon`) / `center: {x, y}` and `radius: number | {x, y}` (`Ellipse`; a number radius is a circle) — parent coordinates.
 - `stroke?: { width?, color?, cap?: "butt" | "round" | "square", dash?: number[] }` — defaults: 1px, `currentColor`.
-- `fill?: string` (`Polygon` only) — default `none`.
+- `fill?: string` (`Polygon` and `Ellipse`) — default `none`.
 - `zValue?: unknown`, `name?: string` — same meaning as on `Box`; shapes take part in z-ranking and the inspector tree, just not in layout.
 
 `<Inset>` — floats inside a `Text`'s content so the words flow around it; it lives in the text flow, **not** the coordinate system (no `position`/`pivot`, doesn't register a rect):
