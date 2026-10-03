@@ -180,6 +180,38 @@ describe("Image", () => {
   });
 });
 
+describe("BoxRoot extent", () => {
+  it("owns the window by default — no CSS required", () => {
+    const view = render(
+      <BoxRoot>
+        <Box size={{ x: 10, y: 10 }} />
+      </BoxRoot>,
+    );
+    const root = view.container.firstElementChild as HTMLElement;
+    expect(root.style.position).toBe("fixed");
+    expect(root.style.top).toBe("0px");
+    expect(root.style.left).toBe("0px");
+    expect(root.style.right).toBe("0px");
+    expect(root.style.bottom).toBe("0px");
+  });
+
+  it("fill='parent' embeds into the surrounding layout", () => {
+    const view = render(<BoxRoot fill="parent" />);
+    const root = view.container.firstElementChild as HTMLElement;
+    expect(root.style.position).toBe("relative");
+    expect(root.style.width).toBe("100%");
+    expect(root.style.height).toBe("100%");
+  });
+
+  it("pixel size makes a fixed-size root in the page flow", () => {
+    const view = render(<BoxRoot size={{ x: 300, y: 200 }} />);
+    const root = view.container.firstElementChild as HTMLElement;
+    expect(root.style.position).toBe("relative");
+    expect(root.style.width).toBe("300px");
+    expect(root.style.height).toBe("200px");
+  });
+});
+
 describe("shapes", () => {
   it("draws a Line in parent coordinates with stroke padding", () => {
     const view = render(

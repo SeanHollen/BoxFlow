@@ -22,7 +22,7 @@ function SplitBar() {
 
 function App() {
   return (
-    <BoxRoot style={{ width: "100vw", height: "100vh" }}>
+    <BoxRoot>
       <SplitBar />
     </BoxRoot>
   );
@@ -33,7 +33,12 @@ function App() {
 
 ### `<BoxRoot>`
 
-The bridge from normal CSS layout into the coordinate system. It fills its container (override with `style`), measures itself with a `ResizeObserver`, and provides its pixel size to descendants. Children render only after the first measurement, so `useParentBoxProps` always returns a real size. Every `Box` tree must be inside a `BoxRoot`.
+The entry into the coordinate system. By default it **owns the browser window**: `<BoxRoot>` with no props fills the viewport regardless of what the surrounding page's CSS does — no `height: 100%` chains, no viewport units, nothing to set up. It measures itself with a `ResizeObserver` and provides its pixel size to descendants; children render only after the first measurement, so `useParentBoxProps` always returns a real size. Every `Box` tree must be inside a `BoxRoot`.
+
+Two declarative alternatives to window ownership:
+
+- `size={{ x, y }}` — a fixed-pixel root sitting in the normal page flow (a canvas embedded in a document). A missing axis falls back to filling the container.
+- `fill="parent"` — the root takes its extent from its CSS container, for embedding a coordinate region inside an existing CSS layout. This is the one place the package leans on surrounding CSS, so the container must actually have a size.
 
 ### `<Box>`
 
@@ -213,9 +218,10 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 
 `<BoxRoot>`:
 
+- `fill?: "window" | "parent"` — default `"window"`: the root covers the browser viewport, independent of the page's CSS. `"parent"` embeds it in a CSS container instead.
 - `debug?: boolean` — enables the debug inspector. Default `false`.
 - `overflow?: { x?, y? }` — default `{ x: "auto", y: "auto" }`: the page scrolls when content overflows.
-- `size?: { min?, max? }` — limits for the page's measured coordinate space; below `min`, scroll instead of collapse.
+- `size?: { x?, y?, min?, max? }` — `x`/`y` fix the root's pixel size in the page flow; `min`/`max` limit the measured coordinate space (below `min`, scroll instead of collapse).
 - `zSort?: (a, b) => number` — comparator for its direct children's `zValue`s.
 - `style?: CSSProperties`
 - `children?: ReactNode`

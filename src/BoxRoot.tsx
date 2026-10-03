@@ -23,9 +23,20 @@ export interface BoxRootProps {
   debug?: boolean;
   inspect?: boolean | InspectOptions;
   zSort?: ZSort;
+  fill?: "window" | "parent";
   overflow?: BoxOverflow;
-  size?: { min?: SizeLimit; max?: SizeLimit };
+  size?: { x?: number; y?: number; min?: SizeLimit; max?: SizeLimit };
   children?: ReactNode;
+}
+
+function rootExtent(fill: "window" | "parent", size: BoxRootProps["size"]): CSSProperties {
+  if (size?.x !== undefined || size?.y !== undefined) {
+    return { position: "relative", width: size.x ?? "100%", height: size.y ?? "100%" };
+  }
+  if (fill === "parent") {
+    return { position: "relative", width: "100%", height: "100%" };
+  }
+  return { position: "fixed", top: 0, left: 0, right: 0, bottom: 0 };
 }
 
 const DEFAULT_ROOT_OVERFLOW: BoxOverflow = { x: "auto", y: "auto" };
@@ -36,8 +47,9 @@ export function BoxRoot({
   debug = false,
   inspect = false,
   zSort,
+  fill = "window",
   overflow = DEFAULT_ROOT_OVERFLOW,
-  size: sizeLimitsProp,
+  size: sizeProp,
   children,
 }: BoxRootProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -98,8 +110,8 @@ export function BoxRoot({
   const value = useMemo(() => {
     if (!size) return undefined;
     const totals = childTotalsFromRects(childRects);
-    const minResolved = resolveLimit(sizeLimitsProp?.min, totals);
-    const maxResolved = resolveLimit(sizeLimitsProp?.max, totals);
+    const minResolved = resolveLimit(sizeProp?.min, totals);
+    const maxResolved = resolveLimit(sizeProp?.max, totals);
     const floored = {
       x: clampAxis(clampAxis(size.x, undefined, maxResolved.x), minResolved.x, undefined),
       y: clampAxis(clampAxis(size.y, undefined, maxResolved.y), minResolved.y, undefined),
@@ -118,7 +130,7 @@ export function BoxRoot({
     };
   }, [
     size,
-    sizeLimitsProp,
+    sizeProp,
     childRects,
     childZ,
     zSort,
@@ -136,10 +148,8 @@ export function BoxRoot({
     <div
       ref={ref}
       style={{
-        width: "100%",
-        height: "100%",
+        ...rootExtent(fill, sizeProp),
         ...style,
-        position: "relative",
         ...overflowToCss(overflow),
       }}
     >
