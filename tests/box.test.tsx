@@ -211,13 +211,54 @@ function BorderProbe() {
 }
 
 describe("Box with a border", () => {
-  it("renders the border and keeps the declared outer size", () => {
+  it("draws the default border as a weightless overlay centered on the edge", () => {
     render(
       <BoxRoot>
         <Box
           position={{ x: 0, y: 0 }}
           size={{ x: 200, y: 100 }}
-          border={{ width: 5, color: "#e0e0e0" }}
+          border={{ width: 4, color: "#e0e0e0" }}
+        >
+          <span data-testid="content" />
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByTestId("content").parentElement;
+    expect(el?.style.width).toBe("200px");
+    expect(el?.style.height).toBe("100px");
+    expect(el?.style.outline).toBe("4px solid #e0e0e0");
+    expect(el?.style.outlineOffset).toBe("-2px");
+    expect(el?.style.border).toBe("");
+  });
+
+  it("overlay border leaves the coordinate space untouched", () => {
+    render(
+      <BoxRoot>
+        <Box position={{ x: 0, y: 0 }} size={{ x: 200, y: 100 }} border={{ width: 5 }}>
+          <BorderProbe />
+          <Box
+            pivot={{ from: "bottomRight", to: "bottomRight" }}
+            position={{ x: 0, y: 0 }}
+            size={{ x: 50, y: 20 }}
+          >
+            <span data-testid="inner" />
+          </Box>
+        </Box>
+      </BoxRoot>,
+    );
+    expect(screen.getByTestId("border-probe").textContent).toBe("200,100;200,100");
+    const el = screen.getByTestId("inner").parentElement;
+    expect(el?.style.left).toBe("150px");
+    expect(el?.style.top).toBe("80px");
+  });
+
+  it("overlay: false renders an inset border inside the declared size", () => {
+    render(
+      <BoxRoot>
+        <Box
+          position={{ x: 0, y: 0 }}
+          size={{ x: 200, y: 100 }}
+          border={{ width: 5, color: "#e0e0e0", overlay: false }}
         >
           <span data-testid="content" />
         </Box>
@@ -229,10 +270,14 @@ describe("Box with a border", () => {
     expect(el?.style.border).toBe("5px solid rgb(224, 224, 224)");
   });
 
-  it("reports the inner size when countBorder is true", () => {
+  it("overlay: false reports the inner size when countBorder is true", () => {
     render(
       <BoxRoot>
-        <Box position={{ x: 0, y: 0 }} size={{ x: 200, y: 100 }} border={{ width: 5 }}>
+        <Box
+          position={{ x: 0, y: 0 }}
+          size={{ x: 200, y: 100 }}
+          border={{ width: 5, overlay: false }}
+        >
           <BorderProbe />
         </Box>
       </BoxRoot>,
@@ -240,10 +285,14 @@ describe("Box with a border", () => {
     expect(screen.getByTestId("border-probe").textContent).toBe("200,100;190,90");
   });
 
-  it("anchors children to the padding box of a bordered parent", () => {
+  it("overlay: false anchors children to the padding box", () => {
     render(
       <BoxRoot>
-        <Box position={{ x: 0, y: 0 }} size={{ x: 200, y: 100 }} border={{ width: 5 }}>
+        <Box
+          position={{ x: 0, y: 0 }}
+          size={{ x: 200, y: 100 }}
+          border={{ width: 5, overlay: false }}
+        >
           <Box
             pivot={{ from: "bottomRight", to: "bottomRight" }}
             position={{ x: 0, y: 0 }}

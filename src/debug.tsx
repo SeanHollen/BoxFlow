@@ -60,6 +60,7 @@ export const overrideSchema = z.strictObject({
       width: z.number(),
       color: z.string().optional(),
       style: z.enum(["solid", "dashed", "dotted", "double"]).optional(),
+      overlay: z.boolean().optional(),
     })
     .optional(),
 });

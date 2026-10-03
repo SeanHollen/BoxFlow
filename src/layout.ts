@@ -82,9 +82,13 @@ export function pivotFraction(pivot: Pivot): Vec2 {
 
 export function borderToCss(border: BoxBorder | undefined): CSSProperties {
   if (!border) return {};
-  return {
-    border: `${border.width}px ${border.style ?? "solid"} ${border.color ?? "currentColor"}`,
-  };
+  const edge = `${border.width}px ${border.style ?? "solid"} ${border.color ?? "currentColor"}`;
+  if (border.overlay === false) return { border: edge };
+  return { outline: edge, outlineOffset: -border.width / 2 };
+}
+
+export function borderInset(border: BoxBorder | undefined): number {
+  return border && border.overlay === false ? border.width : 0;
 }
 
 export function resolveSize(size: SizeSpec, childTotals: Vec2): Vec2 {

@@ -72,6 +72,7 @@ export interface BoxBorder {
   width: number;
   color?: string;
   style?: "solid" | "dashed" | "dotted" | "double";
+  overlay?: boolean;
 }
 
 export type AxisSizeSpec = number | "childTotals";

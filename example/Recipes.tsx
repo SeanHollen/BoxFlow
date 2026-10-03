@@ -344,6 +344,35 @@ function RotateFlipDemo() {
   );
 }
 
+const GRID_CELLS = [
+  ["Aa", "Bb", "Cc"],
+  ["Dd", "Ee", "Ff"],
+];
+
+function CollapsedGridDemo() {
+  const size = useDemoSize();
+  const cellW = size.x / 3;
+  const cellH = 36;
+  return (
+    <>
+      {GRID_CELLS.flatMap((row, r) =>
+        row.map((label, c) => (
+          <Box
+            key={label}
+            position={{ x: c * cellW, y: r * cellH }}
+            size={{ x: cellW, y: cellH }}
+            border={{ width: 1, color: "#5f6368" }}
+          >
+            <Text pivot={{ from: "center" }} font={{ size: 10, color: "#5f6368" }}>
+              {label}
+            </Text>
+          </Box>
+        )),
+      )}
+    </>
+  );
+}
+
 function ShapesDemo() {
   const lineFrom = { x: 86, y: 40 };
   const lineTo = { x: 114, y: 44 };
@@ -429,6 +458,13 @@ const RECIPES: RecipeSpec[] = [
     w: 222,
     demoH: 48,
     Demo: ProgressDemo,
+  },
+  {
+    title: "Collapsed grid",
+    css: "CSS: border-collapse → overlay borders: flush cells share single 1px lines",
+    w: 222,
+    demoH: 72,
+    Demo: CollapsedGridDemo,
   },
   {
     title: "Lines & polygons",

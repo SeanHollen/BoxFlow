@@ -8,6 +8,7 @@ import {
   ZERO_VEC,
   anchorFromFraction,
   attachFor,
+  borderInset,
   borderToCss,
   childReach,
   computeZRanks,
@@ -207,7 +208,7 @@ function IntrinsicText(props: IntrinsicTextProps) {
 
   const { childRects, childZ, registerChild, unregisterChild, registerZ, unregisterZ } =
     useChildRects();
-  const borderWidth = border?.width ?? 0;
+  const borderWidth = borderInset(border);
   const value = useMemo<BoxContextValue>(
     () => ({
       size: { x: width, y: height },

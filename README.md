@@ -52,7 +52,7 @@ An absolutely positioned rectangle.
 | `pivot` | `{from?, to?}` | `topLeft`/`topLeft` | `from` is the point on the reference (parent or previous sibling) that `position` is measured from; `to` is the point on **this box** that lands there. An unspecified `to` mirrors `from`, so `{from: "center"}` means center-to-center. |
 | `stackMode` | `"vertical" \| "horizontal" \| "verticalReverse" \| "horizontalReverse"` | — | Shorthand for the common sibling pivots: `vertical` stacks below the previous sibling, `horizontal` to its right, the `Reverse` forms above and to the left (gaps there are negative offsets, since +x/+y stay right/down). Implies `relativeTo="siblings"`. Cannot be combined with `pivot`. |
 | `overflow` | `{x?, y?}` | `visible` | Per-axis: `"visible"`, `"clip"`, or `"scrollbar"`. A `scrollbar` axis also contains scroll chaining (`overscroll-behavior: contain`), so reaching the end of the scroll never scrolls whatever is outside the box. |
-| `border` | `{width, color?, style?}` | — | Border in pixels, drawn inside the declared `size` (border-box). Set borders here, not via `style`, so the library can account for them. |
+| `border` | `{width, color?, style?, overlay?}` | — | Border in pixels. By default it's a weightless overlay **centered on the box edge** (SVG-stroke semantics): it takes no space, so the interior, child coordinates, and `childTotals` are untouched, and the borders of boxes with coincident edges merge into one shared line. `overlay: false` draws it inside the declared `size` instead (border-box), shrinking the interior by `width` per edge. |
 | `style` | `PaintStyle` | — | Paint-only styles: background, radius, shadow, opacity, outline, cursor, filter, transition, … Layout-flavored CSS (padding, margin, display, width, transform) is a type error here. |
 | `dangerousPositionStyles` | `CSSProperties` | — | The deliberate escape hatch: raw CSS merged **after** the computed layout, so it can override anything — transforms, padding, even left/top. The name is the confirmation dialog. |
 
@@ -158,13 +158,13 @@ Shapes are drawn in the parent's coordinate space and only there: no `relativeTo
 
 Returns `{ size: {x, y} }` for the nearest enclosing `Box` (or `BoxRoot`). Throws outside of one.
 
-By default `size` is the parent's declared outer size. A border is drawn inside that rectangle, so a bordered parent's usable interior — the coordinate space its children actually position in — is smaller by `2 × border.width` per axis. Pass `{ countBorder: true }` to get that inner size instead:
+By default `size` is the parent's declared outer size. An `overlay: false` border is drawn inside that rectangle, so such a parent's usable interior — the coordinate space its children actually position in — is smaller by `2 × border.width` per axis. Pass `{ countBorder: true }` to get that inner size instead (for default overlay borders it equals the outer size):
 
 ```tsx
 const { size } = useParentBoxProps({ countBorder: true })
 ```
 
-Child `Box` anchor math (`pivot.from` against the parent) always uses the inner size, matching where CSS actually resolves the coordinates.
+Child `Box` anchor math (`pivot.from` against the parent) always uses the inner size, matching where CSS actually resolves the coordinates. With the default overlay border the inner size *is* the outer size — children anchor to the true rectangle and may paint over the border line.
 
 ## Props at a glance
 
@@ -177,7 +177,7 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 - `stackMode?: "vertical" | "horizontal" | "verticalReverse" | "horizontalReverse"` — sibling-stacking shorthand (below / right / above / left of the previous sibling); excludes `pivot`.
 - `relativeTo?: "parent" | "siblings"` — what the box positions against. Default `"parent"`.
 - `overflow?: { x?: OverflowMode, y?: OverflowMode }` — `"visible" | "clip" | "scrollbar" | "auto" | "ellipsis"` per axis. Default `visible` (`auto` shows scrollbars only when content overflows). `ellipsis` is for text on the x axis; on y it clips.
-- `border?: { width: number, color?: string, style?: "solid" | "dashed" | "dotted" | "double" }`
+- `border?: { width: number, color?: string, style?: "solid" | "dashed" | "dotted" | "double", overlay?: boolean }` — default `overlay: true`: the border is paint centered on the box edge, taking no space, so coincident edges share one line. `overlay: false` draws it inside the declared size and shrinks the interior.
 - `zValue?: unknown` — stacking order among siblings. Numbers sort lowest→highest by default; anything else falls back to string comparison, or to the parent's `zSort`. Boxes without a `zValue` stay in DOM order beneath ranked ones. Pass referentially stable values (module-level consts, not inline object literals).
 - `zSort?: (a, b) => number` — comparator the **parent** provides for its children's `zValue`s, enabling arbitrary objects as z values.
 - `rotate?: number` — degrees, paint-only with SVG semantics: the box rotates visually around its center, but layout, registration, and `childTotals` all use the unrotated rectangle.

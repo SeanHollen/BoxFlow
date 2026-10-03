@@ -8,6 +8,7 @@ import {
   ZERO_VEC,
   anchorFromFraction,
   attachFor,
+  borderInset,
   borderToCss,
   childReach,
   childTotalsFromRects,
@@ -146,7 +147,7 @@ export function Box(props: BoxProps) {
   const paintTransform = transformParts.length > 0 ? transformParts.join(" ") : undefined;
   const topLeft = computeTopLeft({ from, to, position, size: resolved, reference });
 
-  const borderWidth = border?.width ?? 0;
+  const borderWidth = borderInset(border);
   const values = sizeValues(size);
   const valueX = values.x;
   const valueY = values.y;
