@@ -5,7 +5,7 @@ import type {
   BoxBorder,
   BoxOverflow,
   ChildRect,
-  PivotPair,
+  PivotSpec,
   RelativeTo,
   SizeSpec,
   SizeValues,
@@ -37,8 +37,8 @@ const sizeSpecSchema = z
   .union([
     z.literal("(function)"),
     z.strictObject({
-      x: z.number().optional(),
-      y: z.number().optional(),
+      x: z.union([z.number(), z.literal("(function)")]).optional(),
+      y: z.union([z.number(), z.literal("(function)")]).optional(),
       min: sizeLimitSchema.optional(),
       max: sizeLimitSchema.optional(),
     }),
@@ -46,9 +46,14 @@ const sizeSpecSchema = z
   .optional();
 
 export const overrideSchema = z.strictObject({
-  position: z.strictObject({ x: z.number(), y: z.number() }).optional(),
+  position: z.strictObject({ x: z.number().optional(), y: z.number().optional() }).optional(),
   size: sizeSpecSchema,
-  pivot: z.strictObject({ from: pivotSchema.optional(), to: pivotSchema.optional() }).optional(),
+  pivot: z
+    .union([
+      pivotSchema,
+      z.strictObject({ from: pivotSchema.optional(), to: pivotSchema.optional() }),
+    ])
+    .optional(),
   relativeTo: z.enum(["parent", "siblings"]).optional(),
   stackMode: z.enum(["vertical", "horizontal", "verticalReverse", "horizontalReverse"]).optional(),
   overflow: z
@@ -61,6 +66,12 @@ export const overrideSchema = z.strictObject({
       color: z.string().optional(),
       style: z.enum(["solid", "dashed", "dotted", "double"]).optional(),
       overlay: z.boolean().optional(),
+      sides: z
+        .union([
+          z.enum(["top", "right", "bottom", "left"]),
+          z.array(z.enum(["top", "right", "bottom", "left"])),
+        ])
+        .optional(),
     })
     .optional(),
 });
@@ -97,14 +108,22 @@ function selectionLabel(selection: DebugSelection): string {
 export function snapshotProps(input: {
   position: Vec2;
   size?: SizeSpec | { x?: number; y?: number };
-  pivot?: PivotPair;
+  pivot?: PivotSpec;
   relativeTo?: RelativeTo;
   stackMode?: StackMode;
   overflow?: BoxOverflow;
   border?: BoxBorder;
   rotate?: number;
 }): string {
-  const size = typeof input.size === "function" ? "(function)" : input.size;
+  const whole = input.size;
+  const size =
+    typeof whole === "function"
+      ? "(function)"
+      : whole && {
+          ...whole,
+          ...(typeof whole.x === "function" ? { x: "(function)" } : undefined),
+          ...(typeof whole.y === "function" ? { y: "(function)" } : undefined),
+        };
   return JSON.stringify(
     {
       position: input.position,

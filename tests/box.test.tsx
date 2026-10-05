@@ -1,3 +1,4 @@
+import type { ParentAxis } from "../src/index";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { Box, BoxRoot, Text, useParentBoxProps } from "../src/index";
@@ -20,9 +21,13 @@ beforeAll(() => {
   });
 });
 
+function axisLabel(axis: ParentAxis): string {
+  return axis.kind === "pixels" ? String(axis.value) : axis.kind;
+}
+
 function SizeProbe() {
   const { size } = useParentBoxProps();
-  return <span data-testid="probe">{`${size.x},${size.y}`}</span>;
+  return <span data-testid="probe">{`${axisLabel(size.x)},${axisLabel(size.y)}`}</span>;
 }
 
 describe("BoxRoot", () => {
@@ -205,7 +210,9 @@ function BorderProbe() {
   const inner = useParentBoxProps({ countBorder: true });
   return (
     <span data-testid="border-probe">
-      {`${outer.size.x},${outer.size.y};${inner.size.x},${inner.size.y}`}
+      {`${axisLabel(outer.size.x)},${axisLabel(outer.size.y)};${axisLabel(
+        inner.size.x,
+      )},${axisLabel(inner.size.y)}`}
     </span>
   );
 }
@@ -283,6 +290,78 @@ describe("Box with a border", () => {
       </BoxRoot>,
     );
     expect(screen.getByTestId("border-probe").textContent).toBe("200,100;190,90");
+  });
+
+  it("sides: paints only the listed sides as overlay strips", () => {
+    render(
+      <BoxRoot>
+        <Box
+          position={{ x: 0, y: 0 }}
+          size={{ x: 200, y: 100 }}
+          border={{ width: 4, color: "#e0e0e0", sides: ["bottom"] }}
+        >
+          <BorderProbe />
+          <span data-testid="content" />
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByTestId("content").parentElement as HTMLElement;
+    expect(el.style.outline).toBe("");
+    const strips = el.querySelectorAll("[data-bc-border]");
+    expect(strips.length).toBe(1);
+    const strip = strips[0] as HTMLElement;
+    expect(strip.getAttribute("data-bc-border")).toBe("bottom");
+    expect(strip.style.borderTop).toBe("4px solid rgb(224, 224, 224)");
+    expect(strip.style.bottom).toBe("-2px");
+    expect(strip.style.pointerEvents).toBe("none");
+    expect(screen.getByTestId("border-probe").textContent).toBe("200,100;200,100");
+  });
+
+  it("accepts a single side without an array", () => {
+    render(
+      <BoxRoot>
+        <Box
+          position={{ x: 0, y: 0 }}
+          size={{ x: 200, y: 100 }}
+          border={{ width: 4, color: "#e0e0e0", sides: "bottom" }}
+        >
+          <span data-testid="content" />
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByTestId("content").parentElement as HTMLElement;
+    const strips = el.querySelectorAll("[data-bc-border]");
+    expect(strips.length).toBe(1);
+    expect(strips[0]?.getAttribute("data-bc-border")).toBe("bottom");
+  });
+
+  it("sides with overlay: false insets only the listed sides", () => {
+    render(
+      <BoxRoot>
+        <Box
+          position={{ x: 0, y: 0 }}
+          size={{ x: 200, y: 100 }}
+          border={{ width: 5, color: "#e0e0e0", overlay: false, sides: ["top"] }}
+        >
+          <BorderProbe />
+          <Box
+            pivot={{ from: "bottomRight", to: "bottomRight" }}
+            position={{ x: 0, y: 0 }}
+            size={{ x: 50, y: 20 }}
+          >
+            <span data-testid="inner" />
+          </Box>
+        </Box>
+      </BoxRoot>,
+    );
+    const probe = screen.getByTestId("border-probe");
+    expect(probe.textContent).toBe("200,100;200,95");
+    const el = probe.parentElement as HTMLElement;
+    expect(el.style.borderTop).toBe("5px solid rgb(224, 224, 224)");
+    expect(el.style.borderLeft).toBe("");
+    const inner = screen.getByTestId("inner").parentElement;
+    expect(inner?.style.left).toBe("150px");
+    expect(inner?.style.top).toBe("75px");
   });
 
   it("overlay: false anchors children to the padding box", () => {
@@ -411,6 +490,31 @@ describe("child-driven sizing", () => {
     const parent = screen.getByTestId("content").parentElement?.parentElement;
     expect(parent?.style.width).toBe("60px");
     expect(parent?.style.height).toBe("30px");
+  });
+
+  it("supports a per-axis size function of that axis's total", () => {
+    render(
+      <BoxRoot>
+        <Box position={{ x: 0, y: 0 }} size={{ x: 1200, y: (yt) => yt + 10 }}>
+          <Box position={{ x: 0, y: 0 }} size={{ x: 50, y: 20 }} />
+          <span data-testid="content" />
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByTestId("content").parentElement;
+    expect(el?.style.width).toBe("1200px");
+    expect(el?.style.height).toBe("30px");
+  });
+
+  it("a function axis reports the sentinel, a numeric axis reports pixels", () => {
+    render(
+      <BoxRoot>
+        <Box position={{ x: 0, y: 0 }} size={{ x: 1200, y: (yt) => yt + 10 }}>
+          <SizeProbe />
+        </Box>
+      </BoxRoot>,
+    );
+    expect(screen.getByTestId("probe").textContent).toBe("1200,childTotals");
   });
 
   it("reports the childTotals sentinel to children instead of a number", () => {

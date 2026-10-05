@@ -3,6 +3,7 @@ import type { CSSProperties, MouseEvent, ReactNode, UIEvent } from "react";
 import { BoxContext, useBoxContext, useChildRects } from "./context.js";
 import { DebugContext, deadSpaceStyle, debugOutline, snapshotProps } from "./debug.js";
 import type { DebugKind, DebugOverride } from "./debug.js";
+import { borderStrips } from "./borderStrips.js";
 import {
   ZERO_RECT,
   ZERO_VEC,
@@ -19,26 +20,31 @@ import {
   pivotFraction,
   previousRect,
   resolveSizing,
+  vecFrom,
   sizeValues,
 } from "./layout.js";
 import type {
+  AxisSize,
   BoxBorder,
   BoxContextValue,
   BoxOverflow,
   ChildAnchor,
   ChildRect,
   PaintStyle,
-  PivotPair,
+  PivotSpec,
   RelativeTo,
   SizeSpec,
   StackMode,
   Vec2,
+  Vec2Input,
   ZSort,
+  PointerHandlers,
 } from "./types.js";
+import { pickPointerHandlers, pointerEventsValue } from "./types.js";
 
-export interface BoxBaseProps {
-  position?: Vec2;
-  pivot?: PivotPair;
+export interface BoxBaseProps extends PointerHandlers<HTMLDivElement> {
+  position?: Vec2Input;
+  pivot?: PivotSpec;
   stackMode?: StackMode;
   relativeTo?: RelativeTo;
   overflow?: BoxOverflow;
@@ -47,12 +53,30 @@ export interface BoxBaseProps {
   zSort?: ZSort;
   rotate?: number;
   sticky?: boolean;
+  clickThrough?: boolean;
   name?: string;
   style?: PaintStyle;
   dangerousPositionStyles?: CSSProperties;
   children?: ReactNode;
   debugKind?: DebugKind;
   internalStyle?: CSSProperties;
+}
+
+function mergeAxisOverride(
+  axis: number | "(function)" | undefined,
+  original: AxisSize | undefined,
+): AxisSize | undefined {
+  return axis === "(function)" ? original : axis;
+}
+
+function mergeSizeOverride(ov: DebugOverride["size"], original: SizeSpec): SizeSpec {
+  if (ov === undefined || ov === "(function)") return original;
+  const base = typeof original === "function" ? undefined : original;
+  return {
+    ...ov,
+    x: mergeAxisOverride(ov.x, base?.x),
+    y: mergeAxisOverride(ov.y, base?.y),
+  };
 }
 
 export interface BoxProps extends BoxBaseProps {
@@ -80,7 +104,7 @@ export function useReferenceRect(
 interface EffectiveLayout {
   position: Vec2;
   size: SizeSpec;
-  pivot: PivotPair | undefined;
+  pivot: PivotSpec | undefined;
   stackMode: StackMode | undefined;
   relativeTo: RelativeTo | undefined;
   overflow: BoxOverflow | undefined;
@@ -98,12 +122,9 @@ function mergeOverride(props: BoxProps, override: DebugOverride | undefined): Ef
     stackMode = override.stackMode;
     pivot = undefined;
   }
-  const size =
-    override?.size !== undefined && override.size !== "(function)"
-      ? override.size
-      : (props.size ?? {});
+  const size = mergeSizeOverride(override?.size, props.size ?? {});
   return {
-    position: override?.position ?? props.position ?? ZERO_VEC,
+    position: vecFrom(override?.position ?? props.position),
     size,
     pivot,
     stackMode,
@@ -147,7 +168,9 @@ export function Box(props: BoxProps) {
   const paintTransform = transformParts.length > 0 ? transformParts.join(" ") : undefined;
   const topLeft = computeTopLeft({ from, to, position, size: resolved, reference });
 
-  const borderWidth = borderInset(border);
+  const insets = borderInset(border);
+  const insetX = insets.left + insets.right;
+  const insetY = insets.top + insets.bottom;
   const values = sizeValues(size);
   const valueX = values.x;
   const valueY = values.y;
@@ -166,16 +189,16 @@ export function Box(props: BoxProps) {
     innerSizeValues: {
       x:
         typeof valueX === "number"
-          ? Math.max(0, clampAxis(valueX, minResolved.x, maxResolved.x) - 2 * borderWidth)
+          ? Math.max(0, clampAxis(valueX, minResolved.x, maxResolved.x) - insetX)
           : valueX,
       y:
         typeof valueY === "number"
-          ? Math.max(0, clampAxis(valueY, minResolved.y, maxResolved.y) - 2 * borderWidth)
+          ? Math.max(0, clampAxis(valueY, minResolved.y, maxResolved.y) - insetY)
           : valueY,
     },
     resolvedInnerSize: {
-      x: Math.max(0, flooredX - 2 * borderWidth),
-      y: Math.max(0, flooredY - 2 * borderWidth),
+      x: Math.max(0, flooredX - insetX),
+      y: Math.max(0, flooredY - insetY),
     },
     childRects,
     zRanks: computeZRanks(childZ, props.zSort),
@@ -234,9 +257,10 @@ export function Box(props: BoxProps) {
   }, [id, zValue, parentRegisterZ, parentUnregisterZ]);
 
   const kind = debugKind ?? "box";
+  const pointerHandlers = pickPointerHandlers(props);
   const handleClick =
     debug?.open === true
-      ? (event: MouseEvent) => {
+      ? (event: MouseEvent<HTMLDivElement>) => {
           event.stopPropagation();
           debug.select({
             id,
@@ -274,9 +298,12 @@ export function Box(props: BoxProps) {
       <div
         data-bc-kind={kind}
         data-bc-name={props.name}
-        onClick={handleClick}
+        {...pointerHandlers}
+        onClick={handleClick ?? pointerHandlers.onClick}
         onScroll={handleScroll}
         style={{
+          ...(pointerHandlers.onClick ? { cursor: "pointer" as const } : undefined),
+          pointerEvents: pointerEventsValue(props.clickThrough, props),
           ...style,
           ...internalStyle,
           ...(isSticky
@@ -295,6 +322,7 @@ export function Box(props: BoxProps) {
         }}
       >
         {children}
+        {borderStrips(border)}
       </div>
     </BoxContext.Provider>
   );

@@ -59,7 +59,7 @@ export function CenteredCard({ position }: { position: Vec2 }) {
       position={position}
       size={{ x: 320, max: { y: 400 } }}
       overflow={{ x: "clip", y: "scrollbar" }}
-      border={{ width: 1, color: "#e0e0e0" }}
+      border={{ width: 1, color: "#e0e0e0", overlay: false }}
       style={{ backgroundColor: "#fff", borderRadius: "8px" }}
     >
       <CardHeader />

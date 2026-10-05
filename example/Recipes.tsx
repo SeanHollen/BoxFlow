@@ -1,6 +1,9 @@
+import { useState } from "react";
 import type { ComponentType, ReactNode } from "react";
 import {
   Box,
+  BoxRoot,
+  Embed,
   Ellipse,
   Line,
   Polygon,
@@ -114,7 +117,7 @@ function Region({
       pivot={pivot}
       style={{ backgroundColor: color, borderRadius: "4px" }}
     >
-      <Text pivot={{ from: "center" }} font={{ size: 9, color: "#3c4043" }}>
+      <Text pivot="center" font={{ size: 9, color: "#3c4043" }}>
         {label}
       </Text>
     </Box>
@@ -200,7 +203,7 @@ function MediaObjectDemo() {
   return (
     <>
       <Box size={{ x: 48, y: 48 }} style={{ backgroundColor: "#1a73e8", borderRadius: "24px" }}>
-        <Text pivot={{ from: "center" }} font={{ size: 14, weight: 600, color: "#fff" }}>
+        <Text pivot="center" font={{ size: 14, weight: 600, color: "#fff" }}>
           {`AB`}
         </Text>
       </Box>
@@ -229,14 +232,14 @@ function HeroDemo() {
       style={{ background: "linear-gradient(135deg, #1a73e8, #9334e6)", borderRadius: "6px" }}
     >
       <Text
-        pivot={{ from: "center" }}
+        pivot="center"
         position={{ x: 0, y: -6 }}
         font={{ size: 16, weight: 600, color: "#fff" }}
       >
         {`Centered over media`}
       </Text>
       <Text
-        pivot={{ from: "center" }}
+        pivot="center"
         position={{ x: 0, y: 14 }}
         font={{ size: 10, color: "rgba(255,255,255,0.8)" }}
       >
@@ -261,7 +264,7 @@ function BadgeDemo() {
         size={{ x: 48, y: 48 }}
         style={{ backgroundColor: "#188038", borderRadius: "24px" }}
       >
-        <Text pivot={{ from: "center" }} font={{ size: 14, weight: 600, color: "#fff" }}>
+        <Text pivot="center" font={{ size: 14, weight: 600, color: "#fff" }}>
           {`CD`}
         </Text>
         <Box
@@ -328,7 +331,7 @@ function RotateFlipDemo() {
           boxShadow: "0 2px 6px rgba(0, 0, 0, 0.15)",
         }}
       >
-        <Text pivot={{ from: "center" }} font={{ size: 12, weight: 600, color: "#3c4043" }}>
+        <Text pivot="center" font={{ size: 12, weight: 600, color: "#3c4043" }}>
           {`rotated sticker`}
         </Text>
       </Box>
@@ -340,6 +343,17 @@ function RotateFlipDemo() {
       >
         {`mirrored by size.x < 0`}
       </Text>
+      <Box
+        pivot={{ from: "topRight" }}
+        position={{ x: -4, y: 70 }}
+        size={{ x: 52, y: 22 }}
+        dangerousPositionStyles={{ transform: "skewX(-12deg)" }}
+        style={{ backgroundColor: "#ceead6", borderRadius: "4px" }}
+      >
+        <Text pivot="center" font={{ size: 9, color: "#188038" }}>
+          {`skewed`}
+        </Text>
+      </Box>
     </>
   );
 }
@@ -355,15 +369,24 @@ function CollapsedGridDemo() {
   const cellH = 36;
   return (
     <>
+      <Box size={{ x: size.x, y: 18 }} border={{ width: 1, color: "#5f6368", sides: "bottom" }}>
+        <Text
+          pivot={{ from: "centerLeft" }}
+          position={{ x: 2 }}
+          font={{ size: 9, color: "#5f6368" }}
+        >
+          {`header — border sides: "bottom"`}
+        </Text>
+      </Box>
       {GRID_CELLS.flatMap((row, r) =>
         row.map((label, c) => (
           <Box
             key={label}
-            position={{ x: c * cellW, y: r * cellH }}
+            position={{ x: c * cellW, y: 22 + r * cellH }}
             size={{ x: cellW, y: cellH }}
             border={{ width: 1, color: "#5f6368" }}
           >
-            <Text pivot={{ from: "center" }} font={{ size: 10, color: "#5f6368" }}>
+            <Text pivot="center" font={{ size: 10, color: "#5f6368" }}>
               {label}
             </Text>
           </Box>
@@ -396,8 +419,92 @@ function ShapesDemo() {
       />
       <Line from={lineFrom} to={lineTo} stroke={{ width: 2, color: "#1a73e8", dash: [4, 4] }} />
       {[lineFrom, lineTo].map((p) => (
-        <Ellipse key={`${p.x},${p.y}`} center={p} radius={4} fill="#1a73e8" />
+        <Ellipse key={`${p.x},${p.y}`} center={p} radius={4} fill="#1a73e8" stroke="none" />
       ))}
+    </>
+  );
+}
+
+function CssIslandsDemo() {
+  return (
+    <Embed name="css-islands">
+      <div style={{ display: "flex", gap: 8 }}>
+        <BoxRoot size={{ x: 86, y: 64 }} style={{ backgroundColor: "#e8f0fe", borderRadius: 6 }}>
+          <Text pivot="center" font={{ size: 9, color: "#1a73e8" }}>
+            {`size={{x, y}}`}
+          </Text>
+        </BoxRoot>
+        <div style={{ width: 86, height: 64 }}>
+          <BoxRoot fill="parent" style={{ backgroundColor: "#ceead6", borderRadius: 6 }}>
+            <Text pivot="center" font={{ size: 9, color: "#188038" }}>
+              {`fill="parent"`}
+            </Text>
+          </BoxRoot>
+        </div>
+      </div>
+    </Embed>
+  );
+}
+
+function HoverDemo() {
+  const [hovered, setHovered] = useState<number | undefined>(undefined);
+  const [overEllipse, setOverEllipse] = useState(false);
+  const [clicks, setClicks] = useState(0);
+  const chipColors = ["#fde293", "#e8f0fe", "#ceead6"];
+  return (
+    <>
+      {chipColors.map((color, i) => (
+        <Box
+          key={color}
+          name={`hover-chip-${i}`}
+          stackMode="horizontal"
+          position={{ x: i === 0 ? 0 : 8, y: 0 }}
+          size={{ x: 40, y: 24 }}
+          style={{
+            backgroundColor: hovered === i ? "#202124" : color,
+            borderRadius: "6px",
+            cursor: "pointer",
+            transition: "background-color 120ms",
+          }}
+          hover={{ onEnter: () => setHovered(i), onLeave: () => setHovered(undefined) }}
+        />
+      ))}
+      <Box
+        name="click-through-veil"
+        clickThrough
+        zValue={5}
+        position={{ x: 0, y: 0 }}
+        size={{ x: 136, y: 24 }}
+        style={{
+          background: "linear-gradient(90deg, rgba(26, 115, 232, 0.18), rgba(26, 115, 232, 0))",
+          borderRadius: "6px",
+        }}
+      />
+      <Ellipse
+        name="hover-ellipse"
+        center={{ x: 36, y: 56 }}
+        radius={{ x: 32, y: 18 }}
+        fill={overEllipse ? "#1a73e8" : "#e8f0fe"}
+        stroke={{ width: 1.5, color: "#1a73e8" }}
+        hover={{ onEnter: () => setOverEllipse(true), onLeave: () => setOverEllipse(false) }}
+      />
+      <Polygon
+        name="hover-polygon"
+        points={[
+          { x: 108, y: 36 },
+          { x: 136, y: 76 },
+          { x: 80, y: 76 },
+        ]}
+        fill="#fde293"
+        stroke={{ width: 1.5, color: "#f9ab00" }}
+        onClick={() => setClicks((n) => n + 1)}
+      />
+      <Text position={{ x: 148, y: 40 }} font={{ size: 11, color: "#5f6368" }}>
+        {hovered === undefined ? "hover a chip" : `chip ${hovered}`}
+      </Text>
+      <Text position={{ x: 148, y: 58 }} font={{ size: 11, color: "#5f6368" }}>
+        {`${clicks} clicks`}
+      </Text>
     </>
   );
 }
@@ -461,9 +568,9 @@ const RECIPES: RecipeSpec[] = [
   },
   {
     title: "Collapsed grid",
-    css: "CSS: border-collapse → overlay borders: flush cells share single 1px lines",
+    css: "CSS: border-collapse / border-bottom → overlay borders share edges; sides picks edges",
     w: 222,
-    demoH: 72,
+    demoH: 94,
     Demo: CollapsedGridDemo,
   },
   {
@@ -474,8 +581,22 @@ const RECIPES: RecipeSpec[] = [
     Demo: ShapesDemo,
   },
   {
+    title: "CSS islands",
+    css: "CSS: fixed-size / 100% containers → a nested BoxRoot per island, bridged by <Embed>",
+    w: 222,
+    demoH: 68,
+    Demo: CssIslandsDemo,
+  },
+  {
+    title: "Hover & click",
+    css: "CSS: :hover / onClick → hover={{onEnter, onLeave}} and onClick on Box and shapes; shapes hit-test their geometry — a clickThrough veil sits above the chips",
+    w: 222,
+    demoH: 84,
+    Demo: HoverDemo,
+  },
+  {
     title: "Rotate & flip",
-    css: "CSS: transform rotate / scaleX(−1) → rotate prop + a negative size axis",
+    css: "CSS: transform rotate / scaleX(−1) → rotate prop + a negative size axis; skew via dangerousPositionStyles",
     w: 222,
     demoH: 104,
     Demo: RotateFlipDemo,

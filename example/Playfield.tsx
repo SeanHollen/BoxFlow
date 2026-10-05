@@ -157,7 +157,7 @@ function Sprite({
       <Image
         name={sprite.id}
         position={sprite.pos}
-        size={{ x: SPRITE, y: SPRITE }}
+        size={{ x: SPRITE }}
         zValue={sprite.pos.y}
         src={sprite.img}
         alt={sprite.id}
@@ -219,10 +219,11 @@ function PlayfieldLayout() {
         size={{ x: size.x - 24 }}
         font={{ size: 11, color: "#80868b" }}
       >
-        {`<Image> sprites; zValue stacks lower ones on top; <Line> tracks the closest pair`}
+        {`<Image> sprites (width-only size, height from the aspect ratio); zValue + a custom zSort put higher sprites in front; <Line> tracks the closest pair`}
       </Text>
       <Box
         name="arena"
+        zSort={(a, b) => Number(b) - Number(a)}
         position={{ x: 8, y: 52 }}
         size={arena}
         overflow={{ x: "clip", y: "clip" }}

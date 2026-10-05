@@ -18,6 +18,7 @@ function proportionalSize(
   const sx = size?.x;
   const sy = size?.y;
   if (sx !== undefined && sy !== undefined) return size;
+  if (typeof sx === "function" || typeof sy === "function") return size;
   if (!natural || natural.x <= 0 || natural.y <= 0) {
     return { ...size, x: sx ?? 0, y: sy ?? 0 };
   }

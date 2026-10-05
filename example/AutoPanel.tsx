@@ -1,4 +1,4 @@
-import { Box, Inset, Text, Arrange, useParentBoxProps } from "../src/index";
+import { Box, Embed, Inset, Text, Arrange, useParentBoxProps } from "../src/index";
 import type { StackMode, TextStyle, Vec2 } from "../src/index";
 
 const WRAP_COLORS = [
@@ -90,7 +90,9 @@ function PanelContent() {
         position={{ x: 0, y: 10 }}
         font={{ size: 11, color: "#5f6368", style: "italic" }}
       >
-        {`width reported to children: ${String(size.x)}`}
+        {`width reported to children: ${
+          size.x.kind === "pixels" ? `${size.x.value}px` : size.x.kind
+        }`}
       </Text>
       <Text stackMode="vertical" position={{ x: 0, y: 12 }} font={{ size: 11, color: "#80868b" }}>
         {`childTotals strips; the second placed with a sibling pivot pair:`}
@@ -133,7 +135,7 @@ function PanelContent() {
           {`/month — baseline-aligned`}
         </Text>
       </Box>
-      <Box stackMode="vertical" position={{ x: 0, y: 12 }} size={{ x: 180 }}>
+      <Box stackMode="vertical" position={{ y: 12 }} size={{ x: 180 }}>
         <Arrange
           items={WRAP_COLORS}
           render={(color, { prior, parentSize }) => {
@@ -152,6 +154,23 @@ function PanelContent() {
           }}
         />
       </Box>
+      <Embed name="native-form" stackMode="vertical" position={{ y: 12 }} size={{ x: 170 }}>
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}
+        >
+          <input
+            placeholder="native input"
+            style={{ width: 110, fontSize: 11, padding: "3px 6px" }}
+          />
+          <button type="submit" style={{ fontSize: 11 }}>
+            {`Send`}
+          </button>
+        </form>
+      </Embed>
+      <Text stackMode="vertical" position={{ x: 0, y: 4 }} font={{ size: 9, color: "#80868b" }}>
+        {`^ a raw <form> measured by <Embed>: it counts toward childTotals and this caption stacks below it`}
+      </Text>
       <Text
         stackMode="vertical"
         position={{ x: 0, y: 12 }}

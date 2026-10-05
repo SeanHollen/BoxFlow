@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
 import type {
+  AxisSize,
+  BorderSide,
   AxisSizeSpec,
   BoxBorder,
   BoxOverflow,
@@ -7,13 +9,15 @@ import type {
   ChildRect,
   OverflowMode,
   Pivot,
-  PivotPair,
+  PivotSpec,
   SizeLimit,
   SizeSpec,
   SizeValues,
+  ParentAxis,
   StackMode,
   TextFont,
   Vec2,
+  Vec2Input,
   ZSort,
 } from "./types.js";
 
@@ -51,9 +55,10 @@ export function computeTopLeft({ from, to, position, size, reference }: LayoutIn
 export const ZERO_RECT: ChildRect = { left: 0, top: 0, right: 0, bottom: 0 };
 
 export function attachFor(
-  pivot: PivotPair | undefined,
+  pivotSpec: PivotSpec | undefined,
   stackMode: StackMode | undefined,
 ): { from: Pivot; to: Pivot } {
+  const pivot = typeof pivotSpec === "string" ? { from: pivotSpec, to: pivotSpec } : pivotSpec;
   if (pivot && stackMode) {
     throw new Error("A box cannot take both pivot and stackMode; stackMode implies the pivots");
   }
@@ -76,24 +81,72 @@ export function previousRect(
   return previous;
 }
 
+export function vecFrom(v: Vec2Input | undefined): Vec2 {
+  return { x: v?.x ?? 0, y: v?.y ?? 0 };
+}
+
 export function pivotFraction(pivot: Pivot): Vec2 {
   return PIVOT_FRACTIONS[pivot];
 }
 
+const BORDER_SIDE_CSS = {
+  top: "borderTop",
+  right: "borderRight",
+  bottom: "borderBottom",
+  left: "borderLeft",
+} as const;
+
+export function borderSides(border: BoxBorder): readonly BorderSide[] | undefined {
+  if (border.sides === undefined) return undefined;
+  return typeof border.sides === "string" ? [border.sides] : border.sides;
+}
+
+export function borderEdge(border: BoxBorder): string {
+  return `${border.width}px ${border.style ?? "solid"} ${border.color ?? "currentColor"}`;
+}
+
 export function borderToCss(border: BoxBorder | undefined): CSSProperties {
   if (!border) return {};
-  const edge = `${border.width}px ${border.style ?? "solid"} ${border.color ?? "currentColor"}`;
-  if (border.overlay === false) return { border: edge };
+  const edge = borderEdge(border);
+  const sides = borderSides(border);
+  if (border.overlay === false) {
+    if (!sides) return { border: edge };
+    const css: CSSProperties = {};
+    for (const side of sides) css[BORDER_SIDE_CSS[side]] = edge;
+    return css;
+  }
+  if (sides) return {};
   return { outline: edge, outlineOffset: -border.width / 2 };
 }
 
-export function borderInset(border: BoxBorder | undefined): number {
-  return border && border.overlay === false ? border.width : 0;
+export interface EdgeInsets {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+const NO_INSETS: EdgeInsets = { left: 0, top: 0, right: 0, bottom: 0 };
+
+export function borderInset(border: BoxBorder | undefined): EdgeInsets {
+  if (!border || border.overlay !== false) return NO_INSETS;
+  const sides = borderSides(border) ?? (["top", "right", "bottom", "left"] as const);
+  const insets = { ...NO_INSETS };
+  for (const side of sides) insets[side] = border.width;
+  return insets;
+}
+
+function resolveAxisSize(axis: AxisSize | undefined, total: number): number {
+  if (typeof axis === "function") return axis(total);
+  return axis ?? total;
 }
 
 export function resolveSize(size: SizeSpec, childTotals: Vec2): Vec2 {
   if (typeof size === "function") return size(childTotals.x, childTotals.y);
-  return { x: size.x ?? childTotals.x, y: size.y ?? childTotals.y };
+  return {
+    x: resolveAxisSize(size.x, childTotals.x),
+    y: resolveAxisSize(size.y, childTotals.y),
+  };
 }
 
 export function resolveLimit(
@@ -120,7 +173,10 @@ export function resolveSizing(spec: SizeSpec, childTotals: Vec2): ResolvedSizing
     return { size: { x: out.x, y: out.y }, min: out.min ?? {}, max: out.max ?? {} };
   }
   return {
-    size: { x: spec.x ?? childTotals.x, y: spec.y ?? childTotals.y },
+    size: {
+      x: resolveAxisSize(spec.x, childTotals.x),
+      y: resolveAxisSize(spec.y, childTotals.y),
+    },
     min: resolveLimit(spec.min, childTotals),
     max: resolveLimit(spec.max, childTotals),
   };
@@ -128,7 +184,10 @@ export function resolveSizing(spec: SizeSpec, childTotals: Vec2): ResolvedSizing
 
 export function sizeValues(size: SizeSpec): SizeValues {
   if (typeof size === "function") return { x: "childTotals", y: "childTotals" };
-  return { x: size.x ?? "childTotals", y: size.y ?? "childTotals" };
+  return {
+    x: typeof size.x === "number" ? size.x : "childTotals",
+    y: typeof size.y === "number" ? size.y : "childTotals",
+  };
 }
 
 export function clampAxis(value: number, min: number | undefined, max: number | undefined): number {
@@ -187,8 +246,12 @@ export function childReach(
   return size;
 }
 
-export function resolvedAxis(value: AxisSizeSpec, fallback = 0): number {
-  return typeof value === "number" ? value : fallback;
+export function resolvedAxis(axis: ParentAxis, fallback = 0): number {
+  return axis.kind === "pixels" ? axis.value : fallback;
+}
+
+export function toParentAxis(value: AxisSizeSpec): ParentAxis {
+  return typeof value === "number" ? { kind: "pixels", value } : { kind: "childTotals" };
 }
 
 const OVERFLOW_CSS: Record<OverflowMode, "visible" | "hidden" | "scroll" | "auto"> = {

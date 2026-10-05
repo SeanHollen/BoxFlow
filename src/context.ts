@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useState } from "react";
+import { toParentAxis } from "./layout.js";
 import type { BoxContextValue, ChildRect, ParentBoxProps, Vec2 } from "./types.js";
 
 function sameRect(a: ChildRect, b: ChildRect): boolean {
@@ -72,7 +73,8 @@ export interface ParentBoxPropsOptions {
 
 export function useParentBoxProps(options?: ParentBoxPropsOptions): ParentBoxProps {
   const { size, innerSizeValues } = useBoxContext();
-  return { size: options?.countBorder ? innerSizeValues : size };
+  const values = options?.countBorder ? innerSizeValues : size;
+  return { size: { x: toParentAxis(values.x), y: toParentAxis(values.y) } };
 }
 
 export function useParentScroll(): { offset: Vec2 } {

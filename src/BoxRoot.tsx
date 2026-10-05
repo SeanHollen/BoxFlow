@@ -2,6 +2,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { BoxContext, useChildRects } from "./context.js";
 import { DebugProvider } from "./debug.js";
+import { GridOverlay } from "./grid.js";
+import type { GridOptions } from "./grid.js";
 import { buildLayoutSnapshot } from "./inspect.js";
 import {
   ZERO_VEC,
@@ -23,6 +25,7 @@ export interface BoxRootProps {
   debug?: boolean;
   inspect?: boolean | InspectOptions;
   zSort?: ZSort;
+  grid?: boolean | GridOptions;
   fill?: "window" | "parent";
   overflow?: BoxOverflow;
   size?: { x?: number; y?: number; min?: SizeLimit; max?: SizeLimit };
@@ -47,6 +50,7 @@ export function BoxRoot({
   debug = false,
   inspect = false,
   zSort,
+  grid = false,
   fill = "window",
   overflow = DEFAULT_ROOT_OVERFLOW,
   size: sizeProp,
@@ -140,8 +144,22 @@ export function BoxRoot({
     unregisterZ,
   ]);
 
+  const gridOverlay =
+    grid !== false && value ? (
+      <GridOverlay
+        size={{
+          x: Math.max(value.size.x, childTotalsFromRects(childRects).x),
+          y: Math.max(value.size.y, childTotalsFromRects(childRects).y),
+        }}
+        options={grid === true ? {} : grid}
+      />
+    ) : undefined;
+
   const content = value ? (
-    <BoxContext.Provider value={value}>{children}</BoxContext.Provider>
+    <BoxContext.Provider value={value}>
+      {children}
+      {gridOverlay}
+    </BoxContext.Provider>
   ) : undefined;
 
   return (

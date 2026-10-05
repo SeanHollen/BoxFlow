@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, MouseEventHandler, PointerEventHandler } from "react";
 
 export interface Vec2 {
   x: number;
@@ -28,6 +28,53 @@ export type PaintStyleKey =
 
 export type PaintStyle = Pick<CSSProperties, PaintStyleKey>;
 
+export interface HoverHandlers<T extends Element = Element> {
+  onEnter?: PointerEventHandler<T>;
+  onLeave?: PointerEventHandler<T>;
+  onMove?: PointerEventHandler<T>;
+}
+
+export interface PointerHandlers<T extends Element = Element> {
+  hover?: HoverHandlers<T>;
+  onPointerDown?: PointerEventHandler<T>;
+  onPointerUp?: PointerEventHandler<T>;
+  onClick?: MouseEventHandler<T>;
+}
+
+export interface ElementPointerProps<T extends Element = Element> {
+  onPointerEnter?: PointerEventHandler<T>;
+  onPointerLeave?: PointerEventHandler<T>;
+  onPointerMove?: PointerEventHandler<T>;
+  onPointerDown?: PointerEventHandler<T>;
+  onPointerUp?: PointerEventHandler<T>;
+  onClick?: MouseEventHandler<T>;
+}
+
+export function pickPointerHandlers<T extends Element>(
+  props: PointerHandlers<T>,
+): ElementPointerProps<T> {
+  const picked: ElementPointerProps<T> = {};
+  if (props.hover?.onEnter) picked.onPointerEnter = props.hover.onEnter;
+  if (props.hover?.onLeave) picked.onPointerLeave = props.hover.onLeave;
+  if (props.hover?.onMove) picked.onPointerMove = props.hover.onMove;
+  if (props.onPointerDown) picked.onPointerDown = props.onPointerDown;
+  if (props.onPointerUp) picked.onPointerUp = props.onPointerUp;
+  if (props.onClick) picked.onClick = props.onClick;
+  return picked;
+}
+
+export function pointerEventsValue(
+  clickThrough: boolean | undefined,
+  props: PointerHandlers<never>,
+): "none" | "auto" | undefined {
+  if (clickThrough === true) return "none";
+  return hasPointerHandlers(props) ? "auto" : undefined;
+}
+
+export function hasPointerHandlers(props: PointerHandlers<never>): boolean {
+  return Object.keys(pickPointerHandlers(props)).length > 0;
+}
+
 export type Pivot =
   | "topLeft"
   | "topCenter"
@@ -43,6 +90,13 @@ export interface PivotPair {
   from?: Pivot;
   to?: Pivot;
 }
+
+export interface Vec2Input {
+  x?: number;
+  y?: number;
+}
+
+export type PivotSpec = Pivot | PivotPair;
 
 export type RelativeTo = "parent" | "siblings";
 
@@ -68,20 +122,25 @@ export interface TextFont {
   align?: "left" | "center" | "right";
 }
 
+export type BorderSide = "top" | "right" | "bottom" | "left";
+
 export interface BoxBorder {
   width: number;
   color?: string;
   style?: "solid" | "dashed" | "dotted" | "double";
   overlay?: boolean;
+  sides?: BorderSide | readonly BorderSide[];
 }
 
 export type AxisSizeSpec = number | "childTotals";
 
 export type SizeLimit = "childTotals" | { x?: AxisSizeSpec; y?: AxisSizeSpec };
 
+export type AxisSize = number | ((total: number) => number);
+
 export interface SizeObject {
-  x?: number;
-  y?: number;
+  x?: AxisSize;
+  y?: AxisSize;
   min?: SizeLimit;
   max?: SizeLimit;
 }
@@ -120,8 +179,15 @@ export interface ChildRect {
   reachY?: number;
 }
 
+export type ParentAxis = { kind: "pixels"; value: number } | { kind: "childTotals" };
+
+export interface ParentSize {
+  x: ParentAxis;
+  y: ParentAxis;
+}
+
 export interface ParentBoxProps {
-  size: SizeValues;
+  size: ParentSize;
 }
 
 export type ZSort = (a: unknown, b: unknown) => number;

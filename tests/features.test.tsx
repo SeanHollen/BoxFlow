@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
+import { StrictMode } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import {
   Box,
@@ -212,6 +213,331 @@ describe("BoxRoot extent", () => {
   });
 });
 
+function HuggingRows() {
+  return (
+    <BoxRoot>
+      <Box name="row2" stackMode="vertical">
+        <Box name="dataViz" stackMode="horizontal" size={{ x: 100, y: 100 }} />
+        <Box name="lossViz" stackMode="horizontal" size={{ x: 100, y: 100 }} />
+      </Box>
+      <Box name="row3" stackMode="vertical">
+        <Box name="weights" stackMode="horizontal" size={{ x: 100, y: 100 }}>
+          <span data-testid="row3-cell" />
+        </Box>
+      </Box>
+    </BoxRoot>
+  );
+}
+
+describe("stacking after a child-sized sibling", () => {
+  it("stacks below the hugged size, not zero", () => {
+    render(
+      <BoxRoot>
+        <Box name="hugging">
+          <Box size={{ x: 120, y: 80 }} />
+        </Box>
+        <Box name="stacked" stackMode="vertical" position={{ x: 0, y: 10 }} size={{ x: 50, y: 20 }}>
+          <span data-testid="stacked-after-hug" />
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByTestId("stacked-after-hug").parentElement;
+    expect(el?.style.left).toBe("0px");
+    expect(el?.style.top).toBe("90px");
+  });
+
+  it("settles a chain of hugging rows that each contain stacked children", () => {
+    render(
+      <StrictMode>
+        <HuggingRows />
+      </StrictMode>,
+    );
+    const cell = screen.getByTestId("row3-cell").parentElement;
+    const row3 = cell?.parentElement;
+    expect(row3?.style.top).toBe("100px");
+    expect(row3?.style.height).toBe("100px");
+    expect(row3?.style.width).toBe("100px");
+  });
+});
+
+describe("clickable cursor", () => {
+  it("Box with onClick gets cursor: pointer", () => {
+    render(
+      <BoxRoot>
+        <Box size={{ x: 50, y: 50 }} onClick={() => {}}>
+          <span data-testid="clickable" />
+        </Box>
+        <Box size={{ x: 50, y: 50 }}>
+          <span data-testid="plain" />
+        </Box>
+      </BoxRoot>,
+    );
+    expect(screen.getByTestId("clickable").parentElement?.style.cursor).toBe("pointer");
+    expect(screen.getByTestId("plain").parentElement?.style.cursor).toBe("");
+  });
+
+  it("an explicit style.cursor wins over the automatic pointer", () => {
+    render(
+      <BoxRoot>
+        <Box size={{ x: 50, y: 50 }} onClick={() => {}} style={{ cursor: "grab" }}>
+          <span data-testid="grabbable" />
+        </Box>
+      </BoxRoot>,
+    );
+    expect(screen.getByTestId("grabbable").parentElement?.style.cursor).toBe("grab");
+  });
+
+  it("a clickable shape gets cursor: pointer on its geometry", () => {
+    const onClick = vi.fn();
+    const view = render(
+      <BoxRoot>
+        <Ellipse center={{ x: 50, y: 50 }} radius={20} fill="#fde293" onClick={onClick} />
+      </BoxRoot>,
+    );
+    const ellipse = view.container.querySelector("ellipse") as SVGEllipseElement;
+    expect(ellipse.style.cursor).toBe("pointer");
+    fireEvent.click(ellipse);
+    expect(onClick).toHaveBeenCalledOnce();
+  });
+});
+
+describe("partial position", () => {
+  it("fills omitted position axes with 0", () => {
+    render(
+      <BoxRoot>
+        <Box position={{ y: 20 }} size={{ x: 50, y: 20 }}>
+          <span data-testid="party" />
+        </Box>
+        <Box position={{ x: 30 }} size={{ x: 50, y: 20 }}>
+          <span data-testid="partx" />
+        </Box>
+      </BoxRoot>,
+    );
+    const y = screen.getByTestId("party").parentElement;
+    expect(y?.style.left).toBe("0px");
+    expect(y?.style.top).toBe("20px");
+    const x = screen.getByTestId("partx").parentElement;
+    expect(x?.style.left).toBe("30px");
+    expect(x?.style.top).toBe("0px");
+  });
+
+  it("works on Text", () => {
+    render(
+      <BoxRoot>
+        <Text position={{ y: 14 }}>{`partial`}</Text>
+      </BoxRoot>,
+    );
+    const el = screen.getByText("partial");
+    expect(el.style.left).toBe("0px");
+    expect(el.style.top).toBe("14px");
+  });
+});
+
+describe("pivot string shorthand", () => {
+  it("a bare pivot string means from and to alike", () => {
+    render(
+      <BoxRoot>
+        <Box size={{ x: 400, y: 300 }}>
+          <Box pivot="center" size={{ x: 100, y: 50 }}>
+            <span data-testid="centered" />
+          </Box>
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByTestId("centered").parentElement;
+    expect(el?.style.left).toBe("150px");
+    expect(el?.style.top).toBe("125px");
+  });
+
+  it("works on Text", () => {
+    render(
+      <BoxRoot>
+        <Box size={{ x: 400, y: 300 }}>
+          <Text pivot="center">{`mode`}</Text>
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByText("mode");
+    expect(el.style.left).toBe("200px");
+    expect(el.style.top).toBe("150px");
+    expect(el.style.transform).toBe("translate(-50%, -50%)");
+  });
+});
+
+describe("intrinsic text in a hugging parent", () => {
+  it("sizes as one line instead of collapsing to one word per line", () => {
+    render(
+      <BoxRoot>
+        <Box style={{ backgroundColor: "white" }}>
+          <Text font={{ size: 10 }}>{`x1: 0.23 x2: -1.27`}</Text>
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByText("x1: 0.23 x2: -1.27");
+    expect(el.style.width).toBe("max-content");
+    expect(el.style.maxWidth).toBe("");
+  });
+
+  it("still wraps at a sized parent's edge", () => {
+    render(
+      <BoxRoot>
+        <Box size={{ x: 120, y: 60 }}>
+          <Text font={{ size: 10 }}>{`a long label that should wrap at the parent`}</Text>
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByText("a long label that should wrap at the parent");
+    expect(el.style.width).toBe("");
+  });
+});
+
+describe("clickThrough", () => {
+  it("makes the box transparent to the pointer", () => {
+    render(
+      <BoxRoot>
+        <Box size={{ x: 50, y: 50 }} clickThrough zValue={2}>
+          <span data-testid="overlay" />
+        </Box>
+      </BoxRoot>,
+    );
+    expect(screen.getByTestId("overlay").parentElement?.style.pointerEvents).toBe("none");
+  });
+
+  it("a descendant with handlers re-enables itself", () => {
+    render(
+      <BoxRoot>
+        <Box size={{ x: 100, y: 100 }} clickThrough>
+          <Box size={{ x: 20, y: 20 }} onClick={() => {}}>
+            <span data-testid="button" />
+          </Box>
+          <Box size={{ x: 20, y: 20 }}>
+            <span data-testid="inert" />
+          </Box>
+        </Box>
+      </BoxRoot>,
+    );
+    expect(screen.getByTestId("button").parentElement?.style.pointerEvents).toBe("auto");
+    expect(screen.getByTestId("inert").parentElement?.style.pointerEvents).toBe("");
+  });
+});
+
+describe("BoxRoot grid", () => {
+  it("overlays non-interactive gridlines with pixel labels", () => {
+    const view = render(
+      <BoxRoot grid>
+        <Box size={{ x: 50, y: 50 }} />
+      </BoxRoot>,
+    );
+    const overlay = view.container.querySelector("[data-bc-grid]") as HTMLElement;
+    expect(overlay.style.pointerEvents).toBe("none");
+    const labels = Array.from(overlay.querySelectorAll("span")).map((el) => el.textContent);
+    expect(labels).toContain("100");
+    expect(labels).toContain("700");
+    expect(labels).toContain("500");
+    expect(labels).not.toContain("800");
+  });
+
+  it("honors a custom step", () => {
+    const view = render(<BoxRoot grid={{ step: 200 }} />);
+    const overlay = view.container.querySelector("[data-bc-grid]") as HTMLElement;
+    const labels = Array.from(overlay.querySelectorAll("span")).map((el) => el.textContent);
+    expect(labels).toContain("200");
+    expect(labels).not.toContain("100");
+  });
+
+  it("renders no overlay by default", () => {
+    const view = render(<BoxRoot />);
+    expect(view.container.querySelector("[data-bc-grid]")).toBeNull();
+  });
+});
+
+describe("pointer events", () => {
+  it("forwards hover handlers from a Box to its element", () => {
+    const onPointerEnter = vi.fn();
+    const onPointerLeave = vi.fn();
+    const onPointerMove = vi.fn();
+    render(
+      <BoxRoot>
+        <Box
+          name="target"
+          size={{ x: 40, y: 40 }}
+          hover={{ onEnter: onPointerEnter, onLeave: onPointerLeave, onMove: onPointerMove }}
+        />
+      </BoxRoot>,
+    );
+    const box = document.querySelector('[data-bc-name="target"]') as HTMLDivElement;
+    fireEvent.pointerEnter(box);
+    fireEvent.pointerMove(box);
+    fireEvent.pointerLeave(box);
+    expect(onPointerEnter).toHaveBeenCalledTimes(1);
+    expect(onPointerMove).toHaveBeenCalledTimes(1);
+    expect(onPointerLeave).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls a Box onClick when debug mode is closed", () => {
+    const onClick = vi.fn();
+    render(
+      <BoxRoot>
+        <Box name="target" size={{ x: 40, y: 40 }} onClick={onClick} />
+      </BoxRoot>,
+    );
+    fireEvent.click(document.querySelector('[data-bc-name="target"]') as HTMLDivElement);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a shape inert when it has no pointer handlers", () => {
+    const view = render(
+      <BoxRoot>
+        <Ellipse center={{ x: 50, y: 50 }} radius={15} />
+      </BoxRoot>,
+    );
+    const ellipse = view.container.querySelector("ellipse") as SVGEllipseElement;
+    expect((ellipse.ownerSVGElement as SVGSVGElement).style.pointerEvents).toBe("none");
+    expect(ellipse.getAttribute("pointer-events")).toBeNull();
+  });
+
+  it("hit-tests a shape on its own geometry, not its frame", () => {
+    const onPointerEnter = vi.fn();
+    const view = render(
+      <BoxRoot>
+        <Polygon
+          points={[
+            { x: 20, y: 10 },
+            { x: 60, y: 10 },
+            { x: 40, y: 50 },
+          ]}
+          hover={{ onEnter: onPointerEnter }}
+        />
+      </BoxRoot>,
+    );
+    const polygon = view.container.querySelector("polygon") as SVGPolygonElement;
+    const svg = polygon.ownerSVGElement as SVGSVGElement;
+    expect(svg.style.pointerEvents).toBe("none");
+    expect(polygon.getAttribute("pointer-events")).toBe("visible");
+    fireEvent.pointerEnter(polygon);
+    expect(onPointerEnter).toHaveBeenCalledTimes(1);
+  });
+
+  it("forwards hover and click handlers on Ellipse and Line", () => {
+    const onEllipse = vi.fn();
+    const onLine = vi.fn();
+    const view = render(
+      <BoxRoot>
+        <Ellipse center={{ x: 50, y: 50 }} radius={15} hover={{ onMove: onEllipse }} />
+        <Line from={{ x: 0, y: 0 }} to={{ x: 50, y: 50 }} onClick={onLine} />
+      </BoxRoot>,
+    );
+    const ellipse = view.container.querySelector("ellipse") as SVGEllipseElement;
+    const line = view.container.querySelector("line") as SVGLineElement;
+    fireEvent.pointerMove(ellipse);
+    fireEvent.click(line);
+    expect(onEllipse).toHaveBeenCalledTimes(1);
+    expect(onLine).toHaveBeenCalledTimes(1);
+    expect(ellipse.getAttribute("pointer-events")).toBe("visible");
+    expect(line.getAttribute("pointer-events")).toBe("visible");
+  });
+});
+
 describe("shapes", () => {
   it("draws a Line in parent coordinates with stroke padding", () => {
     const view = render(
@@ -277,6 +603,20 @@ describe("shapes", () => {
     expect(svg.style.top).toBe("18px");
     expect(svg.style.width).toBe("64px");
     expect(svg.style.height).toBe("44px");
+  });
+
+  it("stroke='none' disables the outline and bounds padding", () => {
+    const view = render(
+      <BoxRoot>
+        <Ellipse center={{ x: 60, y: 40 }} radius={20} stroke="none" fill="#fde293" />
+      </BoxRoot>,
+    );
+    const ellipse = view.container.querySelector("ellipse") as SVGEllipseElement;
+    expect(ellipse.getAttribute("stroke")).toBe("none");
+    const svg = ellipse.ownerSVGElement as SVGSVGElement;
+    expect(svg.style.left).toBe("40px");
+    expect(svg.style.top).toBe("20px");
+    expect(svg.style.width).toBe("40px");
   });
 
   it("treats a number radius as a circle", () => {
