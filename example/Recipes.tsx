@@ -7,7 +7,7 @@ import {
   Ellipse,
   Line,
   Polygon,
-  Text,
+  BoxText,
   Arrange,
   resolvedAxis,
   useParentBoxProps,
@@ -36,21 +36,21 @@ function Recipe({
       border={{ width: 1, color: "#e0e0e0" }}
       style={{ backgroundColor: "#fff", borderRadius: "8px" }}
     >
-      <Text
+      <BoxText
         stackMode="vertical"
         position={{ x: 12, y: 10 }}
         font={{ size: 13, weight: 600, color: "#202124" }}
       >
         {title}
-      </Text>
-      <Text
+      </BoxText>
+      <BoxText
         stackMode="vertical"
         position={{ x: 0, y: 4 }}
         size={{ x: width - 24 }}
         font={{ size: 10, color: "#80868b" }}
       >
         {css}
-      </Text>
+      </BoxText>
       <Box stackMode="vertical" position={{ x: 0, y: 8 }} size={{ x: width - 24, y: demoHeight }}>
         {children}
       </Box>
@@ -69,30 +69,30 @@ function NavbarDemo() {
   const size = useDemoSize();
   return (
     <Box size={{ x: size.x, y: 44 }} style={{ backgroundColor: "#202124", borderRadius: "6px" }}>
-      <Text
+      <BoxText
         pivot={{ from: "centerLeft" }}
         position={{ x: 12, y: 0 }}
         font={{ size: 13, weight: 600, color: "#fff" }}
       >
         {`Brand`}
-      </Text>
+      </BoxText>
       {NAV_LINKS.map((link) => (
-        <Text
+        <BoxText
           key={link}
           stackMode="horizontal"
           position={{ x: 18, y: 0 }}
           font={{ size: 12, color: "#bdc1c6" }}
         >
           {link}
-        </Text>
+        </BoxText>
       ))}
-      <Text
+      <BoxText
         pivot={{ from: "centerRight" }}
         position={{ x: -12, y: 0 }}
         font={{ size: 12, weight: 600, color: "#8ab4f8" }}
       >
         {`Sign in`}
-      </Text>
+      </BoxText>
     </Box>
   );
 }
@@ -117,9 +117,9 @@ function Region({
       pivot={pivot}
       style={{ backgroundColor: color, borderRadius: "4px" }}
     >
-      <Text pivot="center" font={{ size: 9, color: "#3c4043" }}>
+      <BoxText pivot="center" font={{ size: 9, color: "#3c4043" }}>
         {label}
-      </Text>
+      </BoxText>
     </Box>
   );
 }
@@ -178,20 +178,20 @@ function CardGridDemo() {
             size={{ x: columnWidth - 2, y: 52 }}
             style={{ backgroundColor: product.color, borderRadius: "5px 5px 0 0" }}
           />
-          <Text
+          <BoxText
             stackMode="vertical"
             position={{ x: 8, y: 8 }}
             font={{ size: 11, weight: 600, color: "#202124" }}
           >
             {product.name}
-          </Text>
-          <Text
+          </BoxText>
+          <BoxText
             stackMode="vertical"
             position={{ x: 0, y: 2 }}
             font={{ size: 10, color: "#5f6368" }}
           >
             {product.price}
-          </Text>
+          </BoxText>
         </Box>
       ))}
     </>
@@ -203,9 +203,9 @@ function MediaObjectDemo() {
   return (
     <>
       <Box size={{ x: 48, y: 48 }} style={{ backgroundColor: "#1a73e8", borderRadius: "24px" }}>
-        <Text pivot="center" font={{ size: 14, weight: 600, color: "#fff" }}>
+        <BoxText pivot="center" font={{ size: 14, weight: 600, color: "#fff" }}>
           {`AB`}
-        </Text>
+        </BoxText>
       </Box>
       <Box
         relativeTo="siblings"
@@ -213,12 +213,16 @@ function MediaObjectDemo() {
         position={{ x: 12, y: 0 }}
         size={{ x: size.x - 60 }}
       >
-        <Text stackMode="vertical" font={{ size: 12, weight: 600, color: "#202124" }}>
+        <BoxText stackMode="vertical" font={{ size: 12, weight: 600, color: "#202124" }}>
           {`Ada Bell`}
-        </Text>
-        <Text stackMode="vertical" position={{ x: 0, y: 4 }} font={{ size: 11, color: "#5f6368" }}>
+        </BoxText>
+        <BoxText
+          stackMode="vertical"
+          position={{ x: 0, y: 4 }}
+          font={{ size: 11, color: "#5f6368" }}
+        >
           {`Unsized text wraps at its parent's edge automatically, so this body copy fills the column beside the avatar without any width math.`}
-        </Text>
+        </BoxText>
       </Box>
     </>
   );
@@ -231,27 +235,27 @@ function HeroDemo() {
       size={{ x: size.x, y: size.y }}
       style={{ background: "linear-gradient(135deg, #1a73e8, #9334e6)", borderRadius: "6px" }}
     >
-      <Text
+      <BoxText
         pivot="center"
         position={{ x: 0, y: -6 }}
         font={{ size: 16, weight: 600, color: "#fff" }}
       >
         {`Centered over media`}
-      </Text>
-      <Text
+      </BoxText>
+      <BoxText
         pivot="center"
         position={{ x: 0, y: 14 }}
         font={{ size: 10, color: "rgba(255,255,255,0.8)" }}
       >
         {`no transform: translate(-50%, -50%) required`}
-      </Text>
-      <Text
+      </BoxText>
+      <BoxText
         pivot={{ from: "bottomRight" }}
         position={{ x: -8, y: -6 }}
         font={{ size: 9, color: "rgba(255,255,255,0.7)" }}
       >
         {`photo credit`}
-      </Text>
+      </BoxText>
     </Box>
   );
 }
@@ -264,9 +268,9 @@ function BadgeDemo() {
         size={{ x: 48, y: 48 }}
         style={{ backgroundColor: "#188038", borderRadius: "24px" }}
       >
-        <Text pivot="center" font={{ size: 14, weight: 600, color: "#fff" }}>
+        <BoxText pivot="center" font={{ size: 14, weight: 600, color: "#fff" }}>
           {`CD`}
-        </Text>
+        </BoxText>
         <Box
           pivot={{ from: "topRight", to: "center" }}
           position={{ x: -6, y: 6 }}
@@ -281,9 +285,9 @@ function BadgeDemo() {
         size={(xt, yt) => ({ x: xt + 6, y: yt + 4 })}
         style={{ backgroundColor: "#202124", borderRadius: "4px" }}
       >
-        <Text position={{ x: 6, y: 4 }} font={{ size: 10, color: "#fff" }}>
+        <BoxText position={{ x: 6, y: 4 }} font={{ size: 10, color: "#fff" }}>
           {`3 new messages`}
-        </Text>
+        </BoxText>
       </Box>
     </>
   );
@@ -294,16 +298,16 @@ function ProgressDemo() {
   const fraction = 0.64;
   return (
     <>
-      <Text position={{ x: 0, y: 8 }} font={{ size: 11, color: "#3c4043" }}>
+      <BoxText position={{ x: 0, y: 8 }} font={{ size: 11, color: "#3c4043" }}>
         {`Uploading…`}
-      </Text>
-      <Text
+      </BoxText>
+      <BoxText
         pivot={{ from: "topRight" }}
         position={{ x: 0, y: 8 }}
         font={{ size: 11, color: "#5f6368" }}
       >
         {`64%`}
-      </Text>
+      </BoxText>
       <Box
         position={{ x: 0, y: 32 }}
         size={{ x: size.x, y: 8 }}
@@ -331,18 +335,18 @@ function RotateFlipDemo() {
           boxShadow: "0 2px 6px rgba(0, 0, 0, 0.15)",
         }}
       >
-        <Text pivot="center" font={{ size: 12, weight: 600, color: "#3c4043" }}>
+        <BoxText pivot="center" font={{ size: 12, weight: 600, color: "#3c4043" }}>
           {`rotated sticker`}
-        </Text>
+        </BoxText>
       </Box>
-      <Text
+      <BoxText
         stackMode="vertical"
         position={{ x: 0, y: 14 }}
         size={{ x: -150, y: 16 }}
         font={{ size: 11, color: "#5f6368" }}
       >
         {`mirrored by size.x < 0`}
-      </Text>
+      </BoxText>
       <Box
         pivot={{ from: "topRight" }}
         position={{ x: -4, y: 70 }}
@@ -350,9 +354,9 @@ function RotateFlipDemo() {
         dangerousPositionStyles={{ transform: "skewX(-12deg)" }}
         style={{ backgroundColor: "#ceead6", borderRadius: "4px" }}
       >
-        <Text pivot="center" font={{ size: 9, color: "#188038" }}>
+        <BoxText pivot="center" font={{ size: 9, color: "#188038" }}>
           {`skewed`}
-        </Text>
+        </BoxText>
       </Box>
     </>
   );
@@ -370,13 +374,13 @@ function CollapsedGridDemo() {
   return (
     <>
       <Box size={{ x: size.x, y: 18 }} border={{ width: 1, color: "#5f6368", sides: "bottom" }}>
-        <Text
+        <BoxText
           pivot={{ from: "centerLeft" }}
           position={{ x: 2 }}
           font={{ size: 9, color: "#5f6368" }}
         >
           {`header — border sides: "bottom"`}
-        </Text>
+        </BoxText>
       </Box>
       {GRID_CELLS.flatMap((row, r) =>
         row.map((label, c) => (
@@ -386,9 +390,9 @@ function CollapsedGridDemo() {
             size={{ x: cellW, y: cellH }}
             border={{ width: 1, color: "#5f6368" }}
           >
-            <Text pivot="center" font={{ size: 10, color: "#5f6368" }}>
+            <BoxText pivot="center" font={{ size: 10, color: "#5f6368" }}>
               {label}
-            </Text>
+            </BoxText>
           </Box>
         )),
       )}
@@ -430,15 +434,15 @@ function CssIslandsDemo() {
     <Embed name="css-islands">
       <div style={{ display: "flex", gap: 8 }}>
         <BoxRoot size={{ x: 86, y: 64 }} style={{ backgroundColor: "#e8f0fe", borderRadius: 6 }}>
-          <Text pivot="center" font={{ size: 9, color: "#1a73e8" }}>
+          <BoxText pivot="center" font={{ size: 9, color: "#1a73e8" }}>
             {`size={{x, y}}`}
-          </Text>
+          </BoxText>
         </BoxRoot>
         <div style={{ width: 86, height: 64 }}>
           <BoxRoot fill="parent" style={{ backgroundColor: "#ceead6", borderRadius: 6 }}>
-            <Text pivot="center" font={{ size: 9, color: "#188038" }}>
+            <BoxText pivot="center" font={{ size: 9, color: "#188038" }}>
               {`fill="parent"`}
-            </Text>
+            </BoxText>
           </BoxRoot>
         </div>
       </div>
@@ -499,12 +503,12 @@ function HoverDemo() {
         stroke={{ width: 1.5, color: "#f9ab00" }}
         onClick={() => setClicks((n) => n + 1)}
       />
-      <Text position={{ x: 148, y: 40 }} font={{ size: 11, color: "#5f6368" }}>
+      <BoxText position={{ x: 148, y: 40 }} font={{ size: 11, color: "#5f6368" }}>
         {hovered === undefined ? "hover a chip" : `chip ${hovered}`}
-      </Text>
-      <Text position={{ x: 148, y: 58 }} font={{ size: 11, color: "#5f6368" }}>
+      </BoxText>
+      <BoxText position={{ x: 148, y: 58 }} font={{ size: 11, color: "#5f6368" }}>
         {`${clicks} clicks`}
-      </Text>
+      </BoxText>
     </>
   );
 }
@@ -609,14 +613,14 @@ export function Recipes() {
   const height = resolvedAxis(size.y);
   return (
     <>
-      <Text
+      <BoxText
         position={{ x: 24, y: 34 }}
         size={{ x: Math.max(200, width - 416) }}
         overflow={{ x: "ellipsis" }}
         font={{ size: 12, color: "#5f6368" }}
       >
         {`Familiar CSS patterns rebuilt with coordinates — each card names the CSS it replaces. The cards themselves flow via <Arrange> (CSS: grid auto-flow).`}
-      </Text>
+      </BoxText>
       <Box
         name="recipes"
         position={{ x: 24, y: 58 }}

@@ -4,6 +4,7 @@ import { BoxContext, useBoxContext, useChildRects } from "./context.js";
 import { DebugContext, deadSpaceStyle, debugOutline, snapshotProps } from "./debug.js";
 import type { DebugKind, DebugOverride } from "./debug.js";
 import { borderStrips } from "./borderStrips.js";
+import { DebugHandles } from "./debugHandles.js";
 import {
   ZERO_RECT,
   ZERO_VEC,
@@ -323,6 +324,16 @@ export function Box(props: BoxProps) {
       >
         {children}
         {borderStrips(border)}
+        {debug?.open === true && debug.directEdit ? (
+          <DebugHandles
+            id={id}
+            debug={debug}
+            position={position}
+            size={size}
+            resolved={resolved}
+            own={pivotFraction(to)}
+          />
+        ) : undefined}
       </div>
     </BoxContext.Provider>
   );

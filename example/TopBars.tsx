@@ -1,4 +1,4 @@
-import { Box, Text, resolvedAxis, useParentBoxProps } from "../src/index";
+import { Box, BoxText, resolvedAxis, useParentBoxProps } from "../src/index";
 
 export function TopBars() {
   const { size } = useParentBoxProps();
@@ -11,14 +11,14 @@ export function TopBars() {
         size={{ x: width / 2, y: 5 }}
         style={{ backgroundColor: "#a8c7fa" }}
       />
-      <Text
+      <BoxText
         position={{ x: 24, y: 11 }}
         size={{ x: Math.max(200, width - 416) }}
         overflow={{ x: "ellipsis" }}
         font={{ size: 11, color: "#80868b" }}
       >
         {`top bars: sized from the root via useParentBoxProps(), second half attached with stackMode="horizontal"`}
-      </Text>
+      </BoxText>
     </>
   );
 }

@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
-import { Box, BoxRoot, Text } from "../src/index";
+import { Box, BoxRoot, BoxText } from "../src/index";
 import type { InspectNode } from "../src/index";
 
 class ResizeObserverStub {
@@ -27,9 +27,9 @@ describe("layout inspection", () => {
       <BoxRoot inspect>
         <Box name="outer" position={{ x: 10, y: 20 }} size={{ x: 200, y: 100 }}>
           <Box name="inner" position={{ x: 5, y: 5 }} size={{ x: 50, y: 30 }} />
-          <Text name="label" position={{ x: 5, y: 40 }}>
+          <BoxText name="label" position={{ x: 5, y: 40 }}>
             {`hi`}
-          </Text>
+          </BoxText>
         </Box>
       </BoxRoot>,
     );

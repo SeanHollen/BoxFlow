@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Box, Image, Line, Text, resolvedAxis, useParentBoxProps } from "../src/index";
+import { Box, Image, Line, BoxText, resolvedAxis, useParentBoxProps } from "../src/index";
 import type { Vec2 } from "../src/index";
 
 const SPRITE = 48;
@@ -163,13 +163,13 @@ function Sprite({
         alt={sprite.id}
         style={highlighted ? { outline: "2px solid #1a73e8", borderRadius: "10px" } : undefined}
       />
-      <Text
+      <BoxText
         pivot={{ to: "topCenter" }}
         position={{ x: sprite.pos.x + SPRITE / 2, y: sprite.pos.y + SPRITE }}
         font={{ size: 10, color: "#5f6368" }}
       >
         {label}
-      </Text>
+      </BoxText>
     </>
   );
 }
@@ -207,20 +207,20 @@ function PlayfieldLayout() {
 
   return (
     <>
-      <Text
+      <BoxText
         position={{ x: 12, y: 10 }}
         size={{ x: size.x - 24, y: 18 }}
         font={{ size: 13, weight: 600, color: "#202124" }}
       >
         {`Bouncing sprites — positions as data`}
-      </Text>
-      <Text
+      </BoxText>
+      <BoxText
         position={{ x: 12, y: 28 }}
         size={{ x: size.x - 24 }}
         font={{ size: 11, color: "#80868b" }}
       >
         {`<Image> sprites (width-only size, height from the aspect ratio); zValue + a custom zSort put higher sprites in front; <Line> tracks the closest pair`}
-      </Text>
+      </BoxText>
       <Box
         name="arena"
         zSort={(a, b) => Number(b) - Number(a)}
@@ -242,14 +242,14 @@ function PlayfieldLayout() {
           );
         })}
       </Box>
-      <Text
+      <BoxText
         pivot={{ from: "bottomLeft" }}
         position={{ x: 12, y: -8 }}
         size={{ x: size.x - 24, y: 16 }}
         font={{ size: 11, color: "#5f6368" }}
       >
         {`closest pair: ${pairA} and ${pairB}, ${Math.round(pairD)}px apart`}
-      </Text>
+      </BoxText>
     </>
   );
 }

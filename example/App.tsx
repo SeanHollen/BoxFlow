@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, BoxRoot, Text, resolvedAxis, useParentBoxProps } from "../src/index";
+import { Box, BoxRoot, BoxText, resolvedAxis, useParentBoxProps } from "../src/index";
 import { TopBars } from "./TopBars";
 import { CenteredCard } from "./CenteredCard";
 import { CornerBadge } from "./CornerBadge";
@@ -33,13 +33,13 @@ function PlaygroundArea() {
       border={{ width: 1, color: "#dadce0", style: "dashed" }}
       style={{ borderRadius: "8px" }}
     >
-      <Text
+      <BoxText
         pivot={{ from: "bottomRight" }}
         position={{ x: -12, y: -8 }}
         font={{ size: 11, color: "#bdc1c6", style: "italic" }}
       >
         {`add boxes in example/Playground.tsx`}
-      </Text>
+      </BoxText>
       <Playground />
     </Box>
   );

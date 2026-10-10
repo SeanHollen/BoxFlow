@@ -9,7 +9,7 @@ import {
   Inset,
   Line,
   Polygon,
-  Text,
+  BoxText,
   Arrange,
   useParentScroll,
 } from "../src/index";
@@ -321,10 +321,10 @@ describe("partial position", () => {
     expect(x?.style.top).toBe("0px");
   });
 
-  it("works on Text", () => {
+  it("works on BoxText", () => {
     render(
       <BoxRoot>
-        <Text position={{ y: 14 }}>{`partial`}</Text>
+        <BoxText position={{ y: 14 }}>{`partial`}</BoxText>
       </BoxRoot>,
     );
     const el = screen.getByText("partial");
@@ -349,11 +349,11 @@ describe("pivot string shorthand", () => {
     expect(el?.style.top).toBe("125px");
   });
 
-  it("works on Text", () => {
+  it("works on BoxText", () => {
     render(
       <BoxRoot>
         <Box size={{ x: 400, y: 300 }}>
-          <Text pivot="center">{`mode`}</Text>
+          <BoxText pivot="center">{`mode`}</BoxText>
         </Box>
       </BoxRoot>,
     );
@@ -369,7 +369,7 @@ describe("intrinsic text in a hugging parent", () => {
     render(
       <BoxRoot>
         <Box style={{ backgroundColor: "white" }}>
-          <Text font={{ size: 10 }}>{`x1: 0.23 x2: -1.27`}</Text>
+          <BoxText font={{ size: 10 }}>{`x1: 0.23 x2: -1.27`}</BoxText>
         </Box>
       </BoxRoot>,
     );
@@ -382,7 +382,7 @@ describe("intrinsic text in a hugging parent", () => {
     render(
       <BoxRoot>
         <Box size={{ x: 120, y: 60 }}>
-          <Text font={{ size: 10 }}>{`a long label that should wrap at the parent`}</Text>
+          <BoxText font={{ size: 10 }}>{`a long label that should wrap at the parent`}</BoxText>
         </Box>
       </BoxRoot>,
     );
@@ -796,13 +796,13 @@ describe("Arrange", () => {
   });
 });
 
-describe("Text baseline", () => {
+describe("BoxText baseline", () => {
   it("anchors position.y at the first line's baseline", () => {
     render(
       <BoxRoot>
-        <Text baseline position={{ x: 0, y: 100 }} font={{ size: 20 }}>
+        <BoxText baseline position={{ x: 0, y: 100 }} font={{ size: 20 }}>
           {`hi`}
-        </Text>
+        </BoxText>
       </BoxRoot>,
     );
     expect(screen.getByText("hi").style.top).toBe("84px");
@@ -810,13 +810,13 @@ describe("Text baseline", () => {
 });
 
 describe("Inset", () => {
-  it("floats a sized box inside Text content", () => {
+  it("floats a sized box inside BoxText content", () => {
     render(
       <BoxRoot>
-        <Text position={{ x: 0, y: 0 }} size={{ x: 200 }}>
+        <BoxText position={{ x: 0, y: 0 }} size={{ x: 200 }}>
           <Inset side="left" size={{ x: 30, y: 30 }} />
           {`words flow around the inset`}
-        </Text>
+        </BoxText>
       </BoxRoot>,
     );
     const textEl = screen.getByText(/words flow/);
@@ -868,13 +868,13 @@ describe("dangerousPositionStyles", () => {
   });
 });
 
-describe("Text ellipsis", () => {
+describe("BoxText ellipsis", () => {
   it("ellipsizes a fixed-width single line", () => {
     render(
       <BoxRoot>
-        <Text position={{ x: 0, y: 0 }} size={{ x: 80 }} overflow={{ x: "ellipsis" }}>
+        <BoxText position={{ x: 0, y: 0 }} size={{ x: 80 }} overflow={{ x: "ellipsis" }}>
           {`a very long label that cannot possibly fit`}
-        </Text>
+        </BoxText>
       </BoxRoot>,
     );
     const el = screen.getByText(/very long label/);

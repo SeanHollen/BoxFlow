@@ -1,7 +1,7 @@
 import type { ParentAxis } from "../src/index";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Box, BoxRoot, Text, useParentBoxProps } from "../src/index";
+import { Box, BoxRoot, BoxText, useParentBoxProps } from "../src/index";
 
 class ResizeObserverStub {
   observe() {}
@@ -609,17 +609,17 @@ describe("sibling-relative placement", () => {
   });
 });
 
-describe("Text", () => {
+describe("BoxText", () => {
   it("positions like a Box and applies font props as CSS", () => {
     render(
       <BoxRoot>
-        <Text
+        <BoxText
           position={{ x: 20, y: 10 }}
           size={{ x: 200, y: 36 }}
           font={{ size: 13, color: "#5f6368", weight: 600 }}
         >
           {`hello`}
-        </Text>
+        </BoxText>
       </BoxRoot>,
     );
     const el = screen.getByText("hello");
@@ -634,9 +634,9 @@ describe("Text", () => {
   it("aligns wrapped lines with font.align", () => {
     render(
       <BoxRoot>
-        <Text position={{ x: 0, y: 0 }} size={{ x: 120 }} font={{ align: "center" }}>
+        <BoxText position={{ x: 0, y: 0 }} size={{ x: 120 }} font={{ align: "center" }}>
           {`hello world again`}
-        </Text>
+        </BoxText>
       </BoxRoot>,
     );
     expect(screen.getByText("hello world again").style.textAlign).toBe("center");
@@ -645,13 +645,13 @@ describe("Text", () => {
   it("applies combined font styles", () => {
     render(
       <BoxRoot>
-        <Text
+        <BoxText
           position={{ x: 0, y: 0 }}
           size={{ x: 100, y: 20 }}
           font={{ style: ["bold", "italic", "underline"] }}
         >
           {`hello`}
-        </Text>
+        </BoxText>
       </BoxRoot>,
     );
     const el = screen.getByText("hello");
@@ -663,9 +663,13 @@ describe("Text", () => {
   it("accepts a single font style and maps strikethrough", () => {
     render(
       <BoxRoot>
-        <Text position={{ x: 0, y: 0 }} size={{ x: 100, y: 20 }} font={{ style: "strikethrough" }}>
+        <BoxText
+          position={{ x: 0, y: 0 }}
+          size={{ x: 100, y: 20 }}
+          font={{ style: "strikethrough" }}
+        >
           {`hello`}
-        </Text>
+        </BoxText>
       </BoxRoot>,
     );
     expect(screen.getByText("hello").style.textDecoration).toBe("line-through");
@@ -674,13 +678,13 @@ describe("Text", () => {
   it("lets an explicit weight win over the bold style", () => {
     render(
       <BoxRoot>
-        <Text
+        <BoxText
           position={{ x: 0, y: 0 }}
           size={{ x: 100, y: 20 }}
           font={{ weight: 300, style: "bold" }}
         >
           {`hello`}
-        </Text>
+        </BoxText>
       </BoxRoot>,
     );
     expect(screen.getByText("hello").style.fontWeight).toBe("300");
@@ -689,20 +693,20 @@ describe("Text", () => {
   it("defaults to a system font family", () => {
     render(
       <BoxRoot>
-        <Text position={{ x: 0, y: 0 }} size={{ x: 100, y: 20 }}>
+        <BoxText position={{ x: 0, y: 0 }} size={{ x: 100, y: 20 }}>
           {`hello`}
-        </Text>
+        </BoxText>
       </BoxRoot>,
     );
     expect(screen.getByText("hello").style.fontFamily).toBe("system-ui, sans-serif");
   });
 });
 
-describe("Text intrinsic sizing", () => {
+describe("BoxText intrinsic sizing", () => {
   it("sizes unsized text intrinsically, wrapping only at the parent's edge", () => {
     render(
       <BoxRoot>
-        <Text position={{ x: 20, y: 10 }}>{`hello world`}</Text>
+        <BoxText position={{ x: 20, y: 10 }}>{`hello world`}</BoxText>
       </BoxRoot>,
     );
     const el = screen.getByText("hello world");
@@ -717,9 +721,9 @@ describe("Text intrinsic sizing", () => {
   it("wraps at a fixed width with free height when only x is set", () => {
     render(
       <BoxRoot>
-        <Text position={{ x: 0, y: 0 }} size={{ x: 80 }}>
+        <BoxText position={{ x: 0, y: 0 }} size={{ x: 80 }}>
           {`hello world`}
-        </Text>
+        </BoxText>
       </BoxRoot>,
     );
     const el = screen.getByText("hello world");
@@ -731,9 +735,9 @@ describe("Text intrinsic sizing", () => {
   it("fixes the height and wraps when only y is set", () => {
     render(
       <BoxRoot>
-        <Text position={{ x: 0, y: 0 }} size={{ y: 60 }}>
+        <BoxText position={{ x: 0, y: 0 }} size={{ y: 60 }}>
           {`hello world`}
-        </Text>
+        </BoxText>
       </BoxRoot>,
     );
     const el = screen.getByText("hello world");
@@ -744,9 +748,9 @@ describe("Text intrinsic sizing", () => {
   it("sizes non-left-pivoted intrinsic text as max-content so transforms align truly", () => {
     render(
       <BoxRoot>
-        <Text pivot={{ from: "center", to: "center" }} position={{ x: 0, y: 0 }}>
+        <BoxText pivot={{ from: "center", to: "center" }} position={{ x: 0, y: 0 }}>
           {`hello centered`}
-        </Text>
+        </BoxText>
       </BoxRoot>,
     );
     const el = screen.getByText("hello centered");
@@ -757,9 +761,9 @@ describe("Text intrinsic sizing", () => {
   it("offsets its own pivot with a percentage transform", () => {
     render(
       <BoxRoot>
-        <Text position={{ x: 0, y: 0 }} pivot={{ from: "bottomRight", to: "bottomRight" }}>
+        <BoxText position={{ x: 0, y: 0 }} pivot={{ from: "bottomRight", to: "bottomRight" }}>
           {`hello`}
-        </Text>
+        </BoxText>
       </BoxRoot>,
     );
     const el = screen.getByText("hello");
@@ -771,9 +775,9 @@ describe("Text intrinsic sizing", () => {
   it("keeps the fixed-box path when both axes are set", () => {
     render(
       <BoxRoot>
-        <Text position={{ x: 0, y: 0 }} size={{ x: 100, y: 20 }}>
+        <BoxText position={{ x: 0, y: 0 }} size={{ x: 100, y: 20 }}>
           {`hello`}
-        </Text>
+        </BoxText>
       </BoxRoot>,
     );
     const el = screen.getByText("hello");

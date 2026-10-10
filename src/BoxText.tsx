@@ -23,18 +23,18 @@ import { fontBaselineOffset } from "./metrics.js";
 import { pickPointerHandlers, pointerEventsValue } from "./types.js";
 import type { BoxContextValue, ChildAnchor, TextFont, Vec2 } from "./types.js";
 
-export interface TextSize {
+export interface BoxTextSize {
   x?: number;
   y?: number;
 }
 
-export interface TextProps extends BoxBaseProps {
-  size?: TextSize;
+export interface BoxTextProps extends BoxBaseProps {
+  size?: BoxTextSize;
   font?: TextFont;
   baseline?: boolean;
 }
 
-export function Text({ font, size, style, children, baseline, ...boxProps }: TextProps) {
+export function BoxText({ font, size, style, children, baseline, ...boxProps }: BoxTextProps) {
   const sx = size?.x;
   const sy = size?.y;
   const basePosition = vecFrom(boxProps.position);
@@ -69,13 +69,13 @@ export function Text({ font, size, style, children, baseline, ...boxProps }: Tex
   );
 }
 
-interface IntrinsicTextProps extends BoxBaseProps {
+interface IntrinsicBoxTextProps extends BoxBaseProps {
   font?: TextFont;
   sizeX?: number;
   sizeY?: number;
 }
 
-function IntrinsicText(props: IntrinsicTextProps) {
+function IntrinsicText(props: IntrinsicBoxTextProps) {
   const { style, children, font } = props;
   const pointerHandlers = pickPointerHandlers(props);
   const parent = useBoxContext();

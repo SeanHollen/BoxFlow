@@ -58,7 +58,7 @@ An absolutely positioned rectangle.
 | `hover` | `{onEnter?, onLeave?, onMove?}` | — | Pointer-hover handlers on the box's own element, each a `PointerEventHandler`. A box with no handlers attaches no listeners. |
 | `onClick`, `onPointerDown`, `onPointerUp` | React handlers | — | Click and press events on the box's own element. While the debug inspector is open, clicks go to the inspector instead of `onClick`. |
 
-To align content inside a box, don't reach for CSS — nest an intrinsically sized `Text` (or a `Box`) and pivot it: `pivot={{ from: "center" }}` centers it, `pivot={{ from: "centerLeft" }}` vertically centers it against the left edge, and so on. Positioning inside a box is the same mechanism as positioning the box itself.
+To align content inside a box, don't reach for CSS — nest an intrinsically sized `BoxText` (or a `Box`) and pivot it: `pivot={{ from: "center" }}` centers it, `pivot={{ from: "centerLeft" }}` vertically centers it against the left edge, and so on. Positioning inside a box is the same mechanism as positioning the box itself.
 
 `Pivot` is one of `topLeft`, `topCenter`, `topRight`, `centerLeft`, `center`, `centerRight`, `bottomLeft`, `bottomCenter`, `bottomRight`.
 
@@ -67,9 +67,9 @@ To align content inside a box, don't reach for CSS — nest an intrinsically siz
 With `relativeTo="siblings"` a box attaches to the rectangle of the sibling rendered just before it (in JSX order), instead of to the parent. The first such box has no predecessor and attaches to a zero-size rectangle at the parent's origin, so a stack starts wherever its first member's `position` says. `stackMode` is the concise form, with `position` acting as the gap:
 
 ```tsx
-<Text stackMode="vertical" position={{ x: 12, y: 12 }}>{`First row`}</Text>
-<Text stackMode="vertical" position={{ x: 0, y: 8 }}>{`8px below the first`}</Text>
-<Text stackMode="vertical" position={{ x: 0, y: 8 }}>{`8px below the second`}</Text>
+<BoxText stackMode="vertical" position={{ x: 12, y: 12 }}>{`First row`}</BoxText>
+<BoxText stackMode="vertical" position={{ x: 0, y: 8 }}>{`8px below the first`}</BoxText>
+<BoxText stackMode="vertical" position={{ x: 0, y: 8 }}>{`8px below the second`}</BoxText>
 ```
 
 For anything beyond straight stacks, spell out the pivots — this puts a box to the right of its previous sibling, top-aligned, with a 10px gap:
@@ -126,23 +126,23 @@ Centering a box on its parent, regardless of either one's size:
 <Box pivot={{ from: "center" }} size={{ x: 200, y: 100 }} />
 ```
 
-### `<Text>`
+### `<BoxText>`
 
 A `Box` that also swallows the text-specific CSS into a structured `font` prop, so labels never need raw `style` typography:
 
 ```tsx
-<Text
+<BoxText
   pivot={{ from: "bottomRight" }}
   position={{ x: -16, y: -16 }}
   font={{ size: 13, color: "#5f6368" }}
 >
   {`pinned to bottomRight`}
-</Text>
+</BoxText>
 ```
 
-`font` takes `family` (defaults to `system-ui, sans-serif`), `size` (px), `weight`, `color`, `lineHeight`, `letterSpacing`, `align` (`"left" | "center" | "right"`, how wrapped lines align within the width), and `style` — one of `"bold"`, `"italic"`, `"underline"`, `"strikethrough"`, or an array combining them (an explicit `weight` wins over `"bold"`). All other `Box` props work on `Text`.
+`font` takes `family` (defaults to `system-ui, sans-serif`), `size` (px), `weight`, `color`, `lineHeight`, `letterSpacing`, `align` (`"left" | "center" | "right"`, how wrapped lines align within the width), and `style` — one of `"bold"`, `"italic"`, `"underline"`, `"strikethrough"`, or an array combining them (an explicit `weight` wins over `"bold"`). All other `Box` props work on `BoxText`.
 
-Unlike `Box`, `Text`'s `size` is optional per axis, because text has an intrinsic size:
+Unlike `Box`, `BoxText`'s `size` is optional per axis, because text has an intrinsic size:
 
 | `size` | Behavior |
 | --- | --- |
@@ -151,7 +151,7 @@ Unlike `Box`, `Text`'s `size` is optional per axis, because text has an intrinsi
 | `{ y }` | Height is fixed at `y`; the text finds the narrowest width whose wrapped lines still fit in `y` (nothing spills on x — the box is exactly as wide as those lines). |
 | `{ x, y }` | Wraps at `x` like above, but height is fixed; extra lines overflow on y and the `overflow` rule decides what happens to them. |
 
-Intrinsically sized text measures itself in the browser (a `ResizeObserver`, plus a pre-paint width search for the `{ y }` case), so it still registers correct rectangles with a `childTotals` parent — an auto-sized panel wraps unmeasured labels correctly. Absolutely positioned child `Box`es never contribute to a `Text`'s intrinsic size; only its text content does.
+Intrinsically sized text measures itself in the browser (a `ResizeObserver`, plus a pre-paint width search for the `{ y }` case), so it still registers correct rectangles with a `childTotals` parent — an auto-sized panel wraps unmeasured labels correctly. Absolutely positioned child `Box`es never contribute to a `BoxText`'s intrinsic size; only its text content does.
 
 ### `<Embed>`
 
@@ -220,7 +220,7 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 - `onClick?`, `onPointerDown?`, `onPointerUp?` — click and press handlers on the element.
 - `children?: ReactNode`
 
-`<Text>` — all `Box` props except `size`, plus:
+`<BoxText>` — all `Box` props except `size`, plus:
 
 - `size?: { x?: number, y?: number }` — both axes optional; unset axes size from the text itself.
 - `font?: { family?, size?, weight?, color?, lineHeight?, letterSpacing?, align?, style? }` — `align` is `"left" | "center" | "right"`; `style` is one of or an array of `"bold" | "italic" | "underline" | "strikethrough"`.
@@ -249,7 +249,7 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 - `fill?: string` (`Polygon` and `Ellipse`) — default `none`.
 - `zValue?: unknown`, `name?: string` — same meaning as on `Box`; shapes take part in z-ranking and the inspector tree, just not in layout. Pointer handlers (`onClick`, `onPointerDown`/`Up`, `hover`) make the drawn geometry itself clickable (the empty bounding box never catches the pointer).
 
-`<Inset>` — floats inside a `Text`'s content so the words flow around it; it lives in the text flow, **not** the coordinate system (no `position`/`pivot`, doesn't register a rect):
+`<Inset>` — floats inside a `BoxText`'s content so the words flow around it; it lives in the text flow, **not** the coordinate system (no `position`/`pivot`, doesn't register a rect):
 
 - `size: {x, y}` (required), `side?: "left" | "right"` (default left), `margin?: number` (default 8)
 - `src?`/`alt?` for an image inset (stretched to `size`), or arbitrary `children`.
@@ -276,11 +276,12 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 <BoxRoot debug>...</BoxRoot>
 ```
 
-Off by default. With `debug` on, **Ctrl/Cmd+Shift+D** toggles an inspector panel (nothing else changes until you open it). The panel closes with its ✕ and drags by its header when it's covering something.
+Off by default. With `debug` on, the inspector panel is shown immediately — if you don't want it, turn `debug` off. **Ctrl/Cmd+Shift+D** toggles it, it closes with its ✕, and it drags by its header when it's covering something.
 
-- Checkboxes outline every `Box` (blue) and every `Text` (magenta) so you can see where the rectangles actually are, and a third toggle highlights **dead space** — fixed-size boxes noticeably larger than their children's extent get red hatching, the tell-tale of a guessed height that should probably be `childTotals`.
+- Checkboxes outline every `Box` (blue) and every `BoxText` (magenta) so you can see where the rectangles actually are, and a third toggle highlights **dead space** — fixed-size boxes noticeably larger than their children's extent get red hatching, the tell-tale of a guessed height that should probably be `childTotals`.
 - Click any element to select it (red outline). The panel identifies it — the `name` prop if you set one, otherwise its text content for string labels, plus the React instance id — and shows its layout props (`position`, `size`, `pivot`, `relativeTo`, `stackMode`, `overflow`, `border`) as JSON. Give the boxes you expect to debug a `name`; it's the greppable link back to the code.
 - Edit the JSON and hit **Apply** to inject the values into the live page; the element re-lays-out immediately, and everything that depends on it (stacked siblings, `childTotals` parents) follows. **Clear override** restores the real props.
+- **drag to edit** puts handles on every `Box` whose values are drag-editable: a circle at the box's own pivot point drags its `position`, and a square at the bottom-right corner drags its `size`. Handles appear only where the numbers are really numbers — a whole-function `size` gets no resize handle, and a function axis stays function-driven while the other axis drags (an unset, hugging axis becomes a concrete number once you resize it). Drags write the same overrides as Apply, so the selected element's JSON tracks the drag live.
 
 Overrides are validated (bad JSON or wrong shapes show an inline error and change nothing), live only in memory, and never touch your code — reload and they're gone. A function-form `size` shows as `"(function)"` in the snapshot; applying it unchanged keeps the function, and replacing it with a concrete value overrides it.
 
@@ -290,7 +291,7 @@ Overrides are validated (bad JSON or wrong shapes show an inline error and chang
 <BoxRoot inspect>...</BoxRoot>
 ```
 
-Off by default, toggled like `debug`. With `inspect` on, the page continuously snapshots its layout as a JSON tree — every `Box`/`Text`, nested, with the exact corner coordinates of each rectangle (`topLeft`/`topRight`/`bottomRight`/`bottomLeft`, relative to the `BoxRoot` origin, read from the live DOM so it is ground truth, not intent). Two consumers:
+Off by default, toggled like `debug`. With `inspect` on, the page continuously snapshots its layout as a JSON tree — every `Box`/`BoxText`, nested, with the exact corner coordinates of each rectangle (`topLeft`/`topRight`/`bottomRight`/`bottomLeft`, relative to the `BoxRoot` origin, read from the live DOM so it is ground truth, not intent). Two consumers:
 
 - **`window.__boxflowTree()`** — returns the current snapshot on demand, for agents driving the browser directly.
 - **The layout MCP server** (`mcp/server.mjs`, registered in `.mcp.json` so agents in this repo get it automatically). The page POSTs changed snapshots to it (default `http://localhost:4848/layout`, configurable via `inspect={{ url, intervalMs }}`); the server exposes two tools: `layout_tree` (the full latest tree) and `find_box` (matches against `name` props — another reason to name your boxes). If no snapshot has arrived, the tools say so instead of guessing.
@@ -325,7 +326,7 @@ npm install ~/code/boxcomponents/boxflow-0.1.0.tgz
 Then:
 
 ```tsx
-import { Box, BoxRoot, Text } from "boxflow";
+import { Box, BoxRoot, BoxText } from "boxflow";
 ```
 
 `react >= 18` is a peer dependency. The directory install is a symlink, so `npm run build` here is what updates consumers; `prepare` runs the build automatically on install from a path or git URL.
@@ -343,6 +344,6 @@ The `example/` directory is a small Vite app exercising every feature of the lib
 
 - **TopBars** — the split bars from the snippet above: `useParentBoxProps` plus `resolvedAxis`, sizes derived from the root.
 - **Playfield** — bouncing sprite images driven by a `requestAnimationFrame` loop. Sprites are `Image`s sized on one axis only (height derived from the natural aspect ratio), stacked by `zValue` through a custom `zSort`, and a dashed `Line` tracks the closest pair. Shows the payoff of positions being plain data: every frame it computes each sprite's nearest neighbor and the overall closest pair straight from the `position` values — no `getBoundingClientRect` — and renders the distances as labels that track the sprites.
-- **Scrollable card** — an inset border (`overlay: false`) with `countBorder`, per-axis `overflow` (`clip` + `scrollbar`), a header pinned with `sticky` + `zValue` while `useParentScroll()` feeds its live scrolled-distance readout, row labels vertically centered by pivoting intrinsic `Text`. The Demos tab itself sits on the root's `minSize`: narrow the window below 1160px and the page scrolls horizontally instead of letting columns collide.
+- **Scrollable card** — an inset border (`overlay: false`) with `countBorder`, per-axis `overflow` (`clip` + `scrollbar`), a header pinned with `sticky` + `zValue` while `useParentScroll()` feeds its live scrolled-distance readout, row labels vertically centered by pivoting intrinsic `BoxText`. The Demos tab itself sits on the root's `minSize`: narrow the window below 1160px and the page scrolls horizontally instead of letting columns collide.
 - **AutoPanel** (left column, below the playfield) — sibling stacking and child-driven sizing together: every row is `stackMode="vertical"` with `position` as the gap (no manual y math anywhere), and the panel itself uses the function form (`(xt, yt) => ({ x: xt + 24, y: yt + 24 })` for 12px padding). Its chip shelf covers the rest: an unsized (content-hugging) strip of horizontally stacked chips, then a `size={{ x: 40 }}` column placed beside it with an explicit sibling pivot pair (`relativeTo="siblings" pivot={{ from: "topRight", to: "topLeft" }}`), both wrapped in a content-hugging box so the row below stacks under the taller of the two. Rows sample every `font.style`, the title uses `letterSpacing`, one paragraph wraps at `size={{ x: 180 }}` with `align: "center"` and `lineHeight`, one text fits `size={{ y: 42 }}` by finding its own width, and one row prints what `useParentBoxProps` reports inside a child-driven box — `kind: "childTotals"` — and the native `<form>` inside `<Embed>` is width-constrained (`size={{ x: 170 }}`) with its height measured.
-- **CornerBadge** — a `Box` pinned to the bottom-right corner that auto-fits its label: a per-axis size function (`size={{ x: (xt) => xt + 12, y: 36 }}`) adds padding around the intrinsic `Text` inside it.
+- **CornerBadge** — a `Box` pinned to the bottom-right corner that auto-fits its label: a per-axis size function (`size={{ x: (xt) => xt + 12, y: 36 }}`) adds padding around the intrinsic `BoxText` inside it.

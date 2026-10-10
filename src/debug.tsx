@@ -92,9 +92,11 @@ export interface DebugContextValue {
   outlineBoxes: boolean;
   outlineTexts: boolean;
   deadSpace: boolean;
+  directEdit: boolean;
   overrides: Record<string, DebugOverride>;
   selectedId: string | undefined;
   select: (selection: DebugSelection) => void;
+  setOverride: (id: string, patch: DebugOverride) => void;
 }
 
 export const DebugContext = createContext<DebugContextValue | undefined>(undefined);
@@ -198,10 +200,11 @@ const panelStyle: CSSProperties = {
 };
 
 export function DebugProvider({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [outlineBoxes, setOutlineBoxes] = useState(false);
   const [outlineTexts, setOutlineTexts] = useState(false);
   const [deadSpace, setDeadSpace] = useState(false);
+  const [directEdit, setDirectEdit] = useState(false);
   const [overrides, setOverrides] = useState<Record<string, DebugOverride>>({});
   const [selection, setSelection] = useState<DebugSelection | undefined>(undefined);
   const [draft, setDraft] = useState("");
@@ -227,17 +230,47 @@ export function DebugProvider({ children }: { children: ReactNode }) {
     setError(undefined);
   }, []);
 
+  const selectedId = selection?.id;
+  const setOverride = useCallback(
+    (id: string, patch: DebugOverride) => {
+      setOverrides((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
+      if (selectedId !== id) return;
+      setDraft((prev) => {
+        try {
+          const current: unknown = JSON.parse(prev);
+          if (typeof current !== "object" || current === null) return prev;
+          return JSON.stringify({ ...current, ...patch }, undefined, 2);
+        } catch {
+          return prev;
+        }
+      });
+    },
+    [selectedId],
+  );
+
   const value = useMemo<DebugContextValue>(
     () => ({
       open,
       outlineBoxes,
       outlineTexts,
       deadSpace,
+      directEdit,
       overrides,
-      selectedId: selection?.id,
+      selectedId,
       select,
+      setOverride,
     }),
-    [open, outlineBoxes, outlineTexts, deadSpace, overrides, selection?.id, select],
+    [
+      open,
+      outlineBoxes,
+      outlineTexts,
+      deadSpace,
+      directEdit,
+      overrides,
+      selectedId,
+      select,
+      setOverride,
+    ],
   );
 
   const apply = () => {
@@ -368,6 +401,16 @@ export function DebugProvider({ children }: { children: ReactNode }) {
             />
             {` highlight dead space`}
             <span style={{ color: "#d93025" }}>{` ▨`}</span>
+          </label>
+          <label style={{ display: "block", marginBottom: "8px" }}>
+            <input
+              type="checkbox"
+              aria-label="drag to edit"
+              checked={directEdit}
+              onChange={(event) => setDirectEdit(event.target.checked)}
+            />
+            {` drag to edit`}
+            <span style={{ color: "#4285f4" }}>{` ✥`}</span>
           </label>
           <div style={{ marginBottom: "4px", color: "#5f6368" }}>
             {selection ? selectionLabel(selection) : `click an element to inspect it`}
