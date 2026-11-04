@@ -212,8 +212,8 @@ export function Embed(props: EmbedProps) {
     <BoxContext.Provider value={value}>
       <div
         ref={ref}
-        data-bc-kind="embed"
-        data-bc-name={props.name}
+        data-boxflow-kind="embed"
+        data-boxflow-name={props.name}
         {...pointerHandlers}
         onClick={handleClick ?? pointerHandlers.onClick}
         style={{

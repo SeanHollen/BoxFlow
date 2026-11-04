@@ -15,7 +15,7 @@ export function borderStrips(border: BoxBorder | undefined): ReactNode {
     return (
       <div
         key={side}
-        data-bc-border={side}
+        data-boxflow-border={side}
         style={{
           position: "absolute",
           pointerEvents: "none",

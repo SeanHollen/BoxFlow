@@ -91,7 +91,7 @@ export function Line(props: LineProps) {
   const zIndex = useShapeZ(id, zValue);
   const { style, offset } = shapeFrame([from, to], stroke);
   return (
-    <svg data-bc-kind="line" data-bc-name={name} style={{ ...style, zIndex }}>
+    <svg data-boxflow-kind="line" data-boxflow-name={name} style={{ ...style, zIndex }}>
       <line
         x1={from.x + offset.x}
         y1={from.y + offset.y}
@@ -117,7 +117,7 @@ export function Ellipse(props: EllipseProps) {
     stroke,
   );
   return (
-    <svg data-bc-kind="ellipse" data-bc-name={name} style={{ ...style, zIndex }}>
+    <svg data-boxflow-kind="ellipse" data-boxflow-name={name} style={{ ...style, zIndex }}>
       <ellipse
         cx={center.x + offset.x}
         cy={center.y + offset.y}
@@ -138,7 +138,7 @@ export function Polygon(props: PolygonProps) {
   const { style, offset } = shapeFrame(points, stroke);
   const pointList = points.map((p) => `${p.x + offset.x},${p.y + offset.y}`).join(" ");
   return (
-    <svg data-bc-kind="polygon" data-bc-name={name} style={{ ...style, zIndex }}>
+    <svg data-boxflow-kind="polygon" data-boxflow-name={name} style={{ ...style, zIndex }}>
       <polygon
         points={pointList}
         fill={fill ?? "none"}

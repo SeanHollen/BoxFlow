@@ -297,8 +297,8 @@ export function Box(props: BoxProps) {
   return (
     <BoxContext.Provider value={value}>
       <div
-        data-bc-kind={kind}
-        data-bc-name={props.name}
+        data-boxflow-kind={kind}
+        data-boxflow-name={props.name}
         {...pointerHandlers}
         onClick={handleClick ?? pointerHandlers.onClick}
         onScroll={handleScroll}

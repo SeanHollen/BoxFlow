@@ -43,7 +43,7 @@ export function GridOverlay({ size, options }: { size: Vec2; options: GridOption
     `repeating-linear-gradient(${direction}, ${color} 0 1px, transparent 1px ${at}px)`;
   return (
     <div
-      data-bc-grid=""
+      data-boxflow-grid=""
       style={{
         position: "absolute",
         left: 0,

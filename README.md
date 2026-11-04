@@ -165,6 +165,46 @@ The bridge for content that isn't part of the component system — native forms,
 
 `size?: { x?, y? }` fixes an axis while the other stays measured — `size={{ x: 300 }}` is a form constrained to 300px whose height follows its content.
 
+### `<PixelGrid>`
+
+A grid of individually colored cells, for pixel art, heatmaps, cellular automata, or any per-cell color data. `pixels` is a row-major 2D array (`pixels[y][x]`), each cell a color tuple:
+
+```tsx
+<PixelGrid pixelSize={8} pixels={[[[255, 0, 0], [0, 0, 255, 0.5]]]} />
+<PixelGrid pixelSize={4} colorSpace="oklch" pixels={[[[0.7, 0.15, 30], [0.7, 0.15, 210]]]} />
+```
+
+With `colorSpace="rgb"` (the default) a cell is `[r, g, b]` with channels 0–255; with `"oklch"` it is `[l, c, h]` — lightness 0–1, chroma (roughly 0–0.4), hue in degrees — converted to sRGB with out-of-gamut channels clamped. Either form takes an optional fourth element, alpha 0–1. Ragged rows are padded with transparent cells to the longest row.
+
+The box is exactly `columns × pixelSize` by `rows × pixelSize`, so it registers a real rectangle: it counts toward `childTotals`, siblings stack against it, and all `Box` props (`position`, `pivot`, `onClick`, …) apply. Children render on top of the cells.
+
+All cells paint into a single canvas at source resolution (one canvas pixel per cell), scaled up with `image-rendering: pixelated` — no per-cell DOM, so a 1024×1024 grid is one element.
+
+Updates are incremental. Each new `pixels` array is diffed against the previous one: a row that is the same array as before is skipped without looking at its cells, a cell that is the same tuple is skipped, and a fresh tuple with equal values is skipped too. Only changed cells are converted, and only the bounding rectangle of the changes is uploaded to the canvas. Update immutably with structural sharing and a one-cell change costs microseconds at any grid size:
+
+```tsx
+setPixels((prev) => {
+  const next = prev.slice();
+  next[y] = prev[y].slice();
+  next[y][x] = [255, 0, 0];
+  return next;
+});
+```
+
+Mutating the array in place is invisible to the diff and won't repaint. Rebuilding the whole grid every update also works (equal values still skip conversion), but then the walk is over every cell, and allocating a million fresh tuples on your side costs more than the component's work.
+
+Measured on an M1 Pro (Node 22; headless Chrome confirms React and the canvas upload add ≲0.1 ms):
+
+| grid | one changed cell | every cell changed, rgb | every cell changed, oklch |
+| --- | --- | --- | --- |
+| 256² | 2–3 µs | 0.7 ms | 2 ms |
+| 512² | 5–6 µs | 1.5 ms | 6.5 ms |
+| 1024² | ~10 µs | 9 ms | 27 ms |
+
+oklch conversion uses an interpolated sine table and an exact threshold table for the sRGB transfer curve instead of `Math.cos`/`Math.sin`/`Math.pow`; out-of-gamut channels clamp, and results match the exact per-channel formula.
+
+`oklchToRgb(l, c, h)`, `pixelsToRgba(pixels, colorSpace)` (the packed RGBA bytes the canvas receives), and `PixelRaster` (the incremental converter: `update(pixels, colorSpace)` returns the dirty `PixelRect`, or `undefined` when nothing changed) are exported for use outside the component.
+
 ### `<Line>`, `<Polygon>`, and `<Ellipse>`
 
 Shape primitives for the playground/graphics side of layout — connectors, markers, decorations:
@@ -242,6 +282,12 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 - `size?: { x?: number, y?: number }` — fixed axes; unset axes are measured from the foreign content inside.
 - Children are raw HTML (or anything), rendered in normal CSS flow inside the measured rectangle.
 
+`<PixelGrid>` — all `Box` props except `size` (the size is derived), plus:
+
+- `pixels: PixelColor[][]` — row-major cells; `PixelColor` is `[a, b, c]` or `[a, b, c, alpha]` (alpha 0–1). Diffed against the previous array by row and cell identity, then by value; only changed cells are converted and uploaded. Update immutably (copy the outer array and the changed rows).
+- `pixelSize?: number` — on-screen pixels per cell. Default `1`.
+- `colorSpace?: "rgb" | "oklch"` — default `"rgb"` (channels 0–255); `"oklch"` reads cells as `[lightness 0–1, chroma, hue°]`.
+
 `<Line>` / `<Polygon>` / `<Ellipse>` — parent-relative shapes outside the layout system (no sibling chain, no `childTotals`, no pivots):
 
 - `from: {x, y}`, `to: {x, y}` (`Line`) / `points: {x, y}[]` (`Polygon`) / `center: {x, y}` and `radius: number | {x, y}` (`Ellipse`; a number radius is a circle) — parent coordinates.
@@ -310,17 +356,17 @@ Two things to keep in mind:
 
 ## Installing in another project
 
-The package ships compiled ESM plus type declarations in `dist/` (nothing else). From another project, install it straight from this directory:
+The package ships compiled ESM plus type declarations in `dist/` (nothing else). From another project, install it straight from this repo's directory (`path/to/boxflow` below):
 
 ```
-npm install ~/code/boxcomponents
+npm install path/to/boxflow
 ```
 
 or as a tarball, which snapshots the current build instead of symlinking:
 
 ```
-cd ~/code/boxcomponents && npm pack
-npm install ~/code/boxcomponents/boxflow-0.1.0.tgz
+cd path/to/boxflow && npm pack
+npm install path/to/boxflow/boxflow-0.1.0.tgz
 ```
 
 Then:
@@ -340,7 +386,7 @@ npm run dev     # serve the example app (example/) with Vite
 npm run build   # emit dist/
 ```
 
-The `example/` directory is a small Vite app exercising every feature of the library. It has three tabs (the tab bar itself is built from `Box`es with a `childTotals` wrapper): **Demos**, where each card carries a caption naming the features it shows; **CSS recipes**, familiar patterns rebuilt with coordinates — navbar (space-between), holy-grail layout, a 1fr-column card grid, media object, hero overlay, corner badge with tooltip, a percentage progress bar, a collapsed-borders grid with a `sides: "bottom"` header rule, the shape primitives (`Line`/`Polygon`/`Ellipse`, including `stroke="none"` dots), CSS islands (nested `BoxRoot size={{x, y}}` and `fill="parent"` roots bridged by `Embed`), hover & click (pointer handlers on boxes and shapes, automatic `cursor: pointer`, a `clickThrough` veil the chips stay hoverable through), and rotate & flip (`rotate`, negative-size mirroring, a `dangerousPositionStyles` skew), each card labeling the CSS it replaces, all flowed onto rows by `<Arrange>` (grid auto-flow) inside a scrollable box; and **Playground**, a full-screen dashed canvas backed by the empty `example/Playground.tsx` — put your own boxes there and hot reload renders them inside it. The demos:
+The `example/` directory is a small Vite app exercising every feature of the library. It has three tabs (the tab bar itself is built from `Box`es with a `childTotals` wrapper): **Demos**, where each card carries a caption naming the features it shows; **CSS recipes**, familiar patterns rebuilt with coordinates — navbar (space-between), holy-grail layout, a 1fr-column card grid, media object, hero overlay, corner badge with tooltip, a percentage progress bar, a collapsed-borders grid with a `sides: "bottom"` header rule, the shape primitives (`Line`/`Polygon`/`Ellipse`, including `stroke="none"` dots), CSS islands (nested `BoxRoot size={{x, y}}` and `fill="parent"` roots bridged by `Embed`), hover & click (pointer handlers on boxes and shapes, automatic `cursor: pointer`, a `clickThrough` veil the chips stay hoverable through), rotate & flip (`rotate`, negative-size mirroring, a `dangerousPositionStyles` skew), and a pixel grid (`PixelGrid` with an oklch hue sweep that rotates on click — a fresh `pixels` array per click repaints the canvas — beside an rgb sprite stacked with `stackMode`), each card labeling the CSS it replaces, all flowed onto rows by `<Arrange>` (grid auto-flow) inside a scrollable box; and **Playground**, a full-screen dashed canvas backed by the empty `example/Playground.tsx` — put your own boxes there and hot reload renders them inside it. The demos:
 
 - **TopBars** — the split bars from the snippet above: `useParentBoxProps` plus `resolvedAxis`, sizes derived from the root.
 - **Playfield** — bouncing sprite images driven by a `requestAnimationFrame` loop. Sprites are `Image`s sized on one axis only (height derived from the natural aspect ratio), stacked by `zValue` through a custom `zSort`, and a dashed `Line` tracks the closest pair. Shows the payoff of positions being plain data: every frame it computes each sprite's nearest neighbor and the overall closest pair straight from the `position` values — no `getBoundingClientRect` — and renders the distances as labels that track the sprites.

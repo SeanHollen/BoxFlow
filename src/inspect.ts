@@ -27,7 +27,7 @@ export function buildLayoutTree(root: HTMLElement): InspectNode[] {
     const nodes: InspectNode[] = [];
     for (const child of el.children) {
       if (!(child instanceof HTMLElement)) continue;
-      const kind = child.dataset["bcKind"];
+      const kind = child.dataset["boxflowKind"];
       if (kind === undefined) {
         nodes.push(...collect(child));
         continue;
@@ -48,7 +48,7 @@ export function buildLayoutTree(root: HTMLElement): InspectNode[] {
         },
         children: collect(child),
       };
-      const name = child.dataset["bcName"];
+      const name = child.dataset["boxflowName"];
       if (name !== undefined) node.name = name;
       nodes.push(node);
     }

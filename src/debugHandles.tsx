@@ -102,7 +102,7 @@ export function DebugHandles({
   return (
     <>
       <div
-        data-bc-handle="position"
+        data-boxflow-handle="position"
         onClick={stop}
         onPointerDown={onPositionDown}
         onPointerMove={onPositionMove}
@@ -118,7 +118,7 @@ export function DebugHandles({
       />
       {resizable ? (
         <div
-          data-bc-handle="resize"
+          data-boxflow-handle="resize"
           onClick={stop}
           onPointerDown={onSizeDown}
           onPointerMove={onSizeMove}

@@ -167,8 +167,8 @@ describe("debug mode", () => {
 describe("drag to edit", () => {
   function handles(el: HTMLElement) {
     return {
-      position: el.querySelector('[data-bc-handle="position"]') as HTMLElement | null,
-      resize: el.querySelector('[data-bc-handle="resize"]') as HTMLElement | null,
+      position: el.querySelector('[data-boxflow-handle="position"]') as HTMLElement | null,
+      resize: el.querySelector('[data-boxflow-handle="resize"]') as HTMLElement | null,
     };
   }
 
@@ -197,7 +197,7 @@ describe("drag to edit", () => {
     renderDemo(true);
     fireEvent.click(screen.getByLabelText("drag to edit"));
     const el = screen.getByTestId("content").parentElement as HTMLElement;
-    const handle = el.querySelector('[data-bc-handle="position"]') as HTMLElement;
+    const handle = el.querySelector('[data-boxflow-handle="position"]') as HTMLElement;
     fireEvent.pointerDown(handle, { clientX: 0, clientY: 0, pointerId: 1 });
     fireEvent.pointerMove(handle, { clientX: 15, clientY: -5, pointerId: 1 });
     fireEvent.pointerUp(handle, { clientX: 15, clientY: -5, pointerId: 1 });
@@ -215,7 +215,7 @@ describe("drag to edit", () => {
     );
     fireEvent.click(screen.getByLabelText("drag to edit"));
     const el = screen.getByTestId("content").parentElement as HTMLElement;
-    const handle = el.querySelector('[data-bc-handle="resize"]') as HTMLElement;
+    const handle = el.querySelector('[data-boxflow-handle="resize"]') as HTMLElement;
     expect(handle).toBeTruthy();
     fireEvent.pointerDown(handle, { clientX: 0, clientY: 0, pointerId: 1 });
     fireEvent.pointerMove(handle, { clientX: 20, clientY: 50, pointerId: 1 });

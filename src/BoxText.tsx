@@ -310,8 +310,8 @@ function IntrinsicText(props: IntrinsicBoxTextProps) {
     <BoxContext.Provider value={value}>
       <div
         ref={ref}
-        data-bc-kind="text"
-        data-bc-name={props.name}
+        data-boxflow-kind="text"
+        data-boxflow-name={props.name}
         {...pointerHandlers}
         onClick={handleClick ?? pointerHandlers.onClick}
         style={{

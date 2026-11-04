@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { ComponentType, ReactNode } from "react";
 import {
   Box,
@@ -7,12 +7,13 @@ import {
   Ellipse,
   Line,
   Polygon,
+  PixelGrid,
   BoxText,
   Arrange,
   resolvedAxis,
   useParentBoxProps,
 } from "../src/index";
-import type { PivotPair, Vec2 } from "../src/index";
+import type { PivotPair, PixelColor, Vec2 } from "../src/index";
 
 function Recipe({
   position,
@@ -521,6 +522,55 @@ interface RecipeSpec {
   Demo: ComponentType;
 }
 
+const CLEAR: PixelColor = [0, 0, 0, 0];
+
+const SPRITE_PALETTE: Record<string, PixelColor> = {
+  y: [251, 188, 4],
+  k: [32, 33, 36],
+  r: [234, 67, 53],
+};
+
+const SPRITE = [
+  "..yyyy..",
+  ".yyyyyy.",
+  "yykyykyy",
+  "yyyyyyyy",
+  "yryyyyry",
+  "yyrrrryy",
+  ".yyyyyy.",
+  "..yyyy..",
+].map((row) => row.split("").map((ch) => SPRITE_PALETTE[ch] ?? CLEAR));
+
+function PixelGridDemo() {
+  const [hueShift, setHueShift] = useState(0);
+  const sweep = useMemo(
+    () =>
+      Array.from({ length: 10 }, (_, y) =>
+        Array.from({ length: 36 }, (_, x): PixelColor => [
+          0.45 + y * 0.05,
+          0.14,
+          (hueShift + x * 10) % 360,
+        ]),
+      ),
+    [hueShift],
+  );
+  return (
+    <>
+      <PixelGrid
+        name="pixel-sweep"
+        pixels={sweep}
+        pixelSize={3}
+        colorSpace="oklch"
+        onClick={() => setHueShift((h) => (h + 40) % 360)}
+      />
+      <PixelGrid stackMode="horizontal" position={{ x: 16 }} pixels={SPRITE} pixelSize={4} />
+      <BoxText position={{ x: 0, y: 40 }} font={{ size: 9, color: "#80868b" }}>
+        {`oklch sweep (click to rotate hue) · rgb sprite`}
+      </BoxText>
+    </>
+  );
+}
+
 const RECIPES: RecipeSpec[] = [
   {
     title: "Navbar",
@@ -604,6 +654,13 @@ const RECIPES: RecipeSpec[] = [
     w: 222,
     demoH: 104,
     Demo: RotateFlipDemo,
+  },
+  {
+    title: "Pixel grid",
+    css: "CSS: a div per cell / background gradients → <PixelGrid> paints rgb or oklch cells onto one canvas",
+    w: 222,
+    demoH: 56,
+    Demo: PixelGridDemo,
   },
 ];
 

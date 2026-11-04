@@ -307,10 +307,10 @@ describe("Box with a border", () => {
     );
     const el = screen.getByTestId("content").parentElement as HTMLElement;
     expect(el.style.outline).toBe("");
-    const strips = el.querySelectorAll("[data-bc-border]");
+    const strips = el.querySelectorAll("[data-boxflow-border]");
     expect(strips.length).toBe(1);
     const strip = strips[0] as HTMLElement;
-    expect(strip.getAttribute("data-bc-border")).toBe("bottom");
+    expect(strip.getAttribute("data-boxflow-border")).toBe("bottom");
     expect(strip.style.borderTop).toBe("4px solid rgb(224, 224, 224)");
     expect(strip.style.bottom).toBe("-2px");
     expect(strip.style.pointerEvents).toBe("none");
@@ -330,9 +330,9 @@ describe("Box with a border", () => {
       </BoxRoot>,
     );
     const el = screen.getByTestId("content").parentElement as HTMLElement;
-    const strips = el.querySelectorAll("[data-bc-border]");
+    const strips = el.querySelectorAll("[data-boxflow-border]");
     expect(strips.length).toBe(1);
-    expect(strips[0]?.getAttribute("data-bc-border")).toBe("bottom");
+    expect(strips[0]?.getAttribute("data-boxflow-border")).toBe("bottom");
   });
 
   it("sides with overlay: false insets only the listed sides", () => {

@@ -9,6 +9,15 @@ export { BoxText } from "./BoxText.js";
 export type { BoxTextProps, BoxTextSize } from "./BoxText.js";
 export { Image } from "./Image.js";
 export type { ImageProps } from "./Image.js";
+export { PixelGrid, PixelRaster, oklchToRgb, pixelsToRgba } from "./PixelGrid.js";
+export type {
+  PixelColor,
+  PixelColorSpace,
+  PixelGridProps,
+  PixelRect,
+  PixelRows,
+  RgbaImage,
+} from "./PixelGrid.js";
 export { Inset } from "./Inset.js";
 export type { InsetProps } from "./Inset.js";
 export { Embed } from "./Embed.js";

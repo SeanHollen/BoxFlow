@@ -428,7 +428,7 @@ describe("BoxRoot grid", () => {
         <Box size={{ x: 50, y: 50 }} />
       </BoxRoot>,
     );
-    const overlay = view.container.querySelector("[data-bc-grid]") as HTMLElement;
+    const overlay = view.container.querySelector("[data-boxflow-grid]") as HTMLElement;
     expect(overlay.style.pointerEvents).toBe("none");
     const labels = Array.from(overlay.querySelectorAll("span")).map((el) => el.textContent);
     expect(labels).toContain("100");
@@ -439,7 +439,7 @@ describe("BoxRoot grid", () => {
 
   it("honors a custom step", () => {
     const view = render(<BoxRoot grid={{ step: 200 }} />);
-    const overlay = view.container.querySelector("[data-bc-grid]") as HTMLElement;
+    const overlay = view.container.querySelector("[data-boxflow-grid]") as HTMLElement;
     const labels = Array.from(overlay.querySelectorAll("span")).map((el) => el.textContent);
     expect(labels).toContain("200");
     expect(labels).not.toContain("100");
@@ -447,7 +447,7 @@ describe("BoxRoot grid", () => {
 
   it("renders no overlay by default", () => {
     const view = render(<BoxRoot />);
-    expect(view.container.querySelector("[data-bc-grid]")).toBeNull();
+    expect(view.container.querySelector("[data-boxflow-grid]")).toBeNull();
   });
 });
 
@@ -465,7 +465,7 @@ describe("pointer events", () => {
         />
       </BoxRoot>,
     );
-    const box = document.querySelector('[data-bc-name="target"]') as HTMLDivElement;
+    const box = document.querySelector('[data-boxflow-name="target"]') as HTMLDivElement;
     fireEvent.pointerEnter(box);
     fireEvent.pointerMove(box);
     fireEvent.pointerLeave(box);
@@ -481,7 +481,7 @@ describe("pointer events", () => {
         <Box name="target" size={{ x: 40, y: 40 }} onClick={onClick} />
       </BoxRoot>,
     );
-    fireEvent.click(document.querySelector('[data-bc-name="target"]') as HTMLDivElement);
+    fireEvent.click(document.querySelector('[data-boxflow-name="target"]') as HTMLDivElement);
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 

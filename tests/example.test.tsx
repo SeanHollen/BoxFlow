@@ -57,7 +57,7 @@ describe("Recipes page", () => {
         </BoxRoot>
       </StrictMode>,
     );
-    const chip = document.querySelector('[data-bc-name="hover-chip-0"]') as HTMLDivElement;
+    const chip = document.querySelector('[data-boxflow-name="hover-chip-0"]') as HTMLDivElement;
     const before = chip.style.backgroundColor;
     fireEvent.pointerEnter(chip);
     expect(chip.style.backgroundColor).not.toBe(before);
@@ -65,14 +65,14 @@ describe("Recipes page", () => {
     expect(chip.style.backgroundColor).toBe(before);
 
     const ellipse = document.querySelector(
-      '[data-bc-name="hover-ellipse"] ellipse',
+      '[data-boxflow-name="hover-ellipse"] ellipse',
     ) as SVGEllipseElement;
     const ellipseFill = ellipse.getAttribute("fill");
     fireEvent.pointerEnter(ellipse);
     expect(ellipse.getAttribute("fill")).not.toBe(ellipseFill);
 
     const polygon = document.querySelector(
-      '[data-bc-name="hover-polygon"] polygon',
+      '[data-boxflow-name="hover-polygon"] polygon',
     ) as SVGPolygonElement;
     fireEvent.click(polygon);
     fireEvent.click(polygon);
