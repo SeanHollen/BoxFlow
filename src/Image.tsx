@@ -1,38 +1,31 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { SyntheticEvent } from "react";
-import { Box } from "./Box.js";
-import type { BoxBaseProps } from "./Box.js";
-import type { SizeSpec, Vec2 } from "./types.js";
+import { useContentRect } from "./contentRect.js";
+import type { Vec2, Vec2Input } from "./types.js";
 
-export interface ImageProps extends BoxBaseProps {
-  size?: SizeSpec;
+export interface ImageProps {
   src: string;
   alt?: string;
+  size?: Vec2Input;
 }
 
-function proportionalSize(
-  size: SizeSpec | undefined,
-  natural: Vec2 | undefined,
-): SizeSpec | undefined {
-  if (typeof size === "function") return size;
+function resolveImageSize(size: Vec2Input | undefined, natural: Vec2 | undefined): Vec2 {
   const sx = size?.x;
   const sy = size?.y;
-  if (sx !== undefined && sy !== undefined) return size;
-  if (typeof sx === "function" || typeof sy === "function") return size;
+  if (sx !== undefined && sy !== undefined) return { x: Math.abs(sx), y: Math.abs(sy) };
   if (!natural || natural.x <= 0 || natural.y <= 0) {
-    return { ...size, x: sx ?? 0, y: sy ?? 0 };
+    return { x: Math.abs(sx ?? 0), y: Math.abs(sy ?? 0) };
   }
-  if (sx !== undefined) {
-    return { ...size, x: sx, y: Math.abs(sx) * (natural.y / natural.x) };
-  }
-  if (sy !== undefined) {
-    return { ...size, x: Math.abs(sy) * (natural.x / natural.y), y: sy };
-  }
-  return { ...size, x: natural.x, y: natural.y };
+  if (sx !== undefined) return { x: Math.abs(sx), y: Math.abs(sx) * (natural.y / natural.x) };
+  if (sy !== undefined) return { x: Math.abs(sy) * (natural.x / natural.y), y: Math.abs(sy) };
+  return natural;
 }
 
-export function Image({ src, alt, size, children, ...boxProps }: ImageProps) {
+export function Image({ src, alt, size }: ImageProps) {
   const [natural, setNatural] = useState<Vec2 | undefined>(undefined);
+  const resolved = resolveImageSize(size, natural);
+  const elementRef = useRef<HTMLImageElement | null>(null);
+  useContentRect(resolved.x, resolved.y, elementRef);
 
   const readNatural = (el: HTMLImageElement) => {
     if (el.naturalWidth <= 0 || el.naturalHeight <= 0) return;
@@ -43,19 +36,30 @@ export function Image({ src, alt, size, children, ...boxProps }: ImageProps) {
     );
   };
 
+  const flips: string[] = [];
+  if ((size?.x ?? 0) < 0) flips.push("scaleX(-1)");
+  if ((size?.y ?? 0) < 0) flips.push("scaleY(-1)");
+
   return (
-    <Box {...boxProps} size={proportionalSize(size, natural)}>
-      <img
-        src={src}
-        alt={alt ?? ""}
-        draggable={false}
-        ref={(el) => {
-          if (el && el.complete) readNatural(el);
-        }}
-        onLoad={(event: SyntheticEvent<HTMLImageElement>) => readNatural(event.currentTarget)}
-        style={{ width: "100%", height: "100%", display: "block" }}
-      />
-      {children}
-    </Box>
+    <img
+      src={src}
+      alt={alt ?? ""}
+      draggable={false}
+      data-boxflow-kind="image"
+      ref={(el) => {
+        elementRef.current = el;
+        if (el && el.complete) readNatural(el);
+      }}
+      onLoad={(event: SyntheticEvent<HTMLImageElement>) => readNatural(event.currentTarget)}
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        width: resolved.x,
+        height: resolved.y,
+        display: "block",
+        transform: flips.length > 0 ? flips.join(" ") : undefined,
+      }}
+    />
   );
 }

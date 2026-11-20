@@ -432,7 +432,7 @@ function ShapesDemo() {
 
 function CssIslandsDemo() {
   return (
-    <Embed name="css-islands">
+    <Embed>
       <div style={{ display: "flex", gap: 8 }}>
         <BoxRoot size={{ x: 86, y: 64 }} style={{ backgroundColor: "#e8f0fe", borderRadius: 6 }}>
           <BoxText pivot="center" font={{ size: 9, color: "#1a73e8" }}>
@@ -556,14 +556,12 @@ function PixelGridDemo() {
   );
   return (
     <>
-      <PixelGrid
-        name="pixel-sweep"
-        pixels={sweep}
-        pixelSize={3}
-        colorSpace="oklch"
-        onClick={() => setHueShift((h) => (h + 40) % 360)}
-      />
-      <PixelGrid stackMode="horizontal" position={{ x: 16 }} pixels={SPRITE} pixelSize={4} />
+      <Box name="pixel-sweep" onClick={() => setHueShift((h) => (h + 40) % 360)}>
+        <PixelGrid pixels={sweep} pixelSize={3} colorSpace="oklch" />
+      </Box>
+      <Box stackMode="horizontal" position={{ x: 16 }}>
+        <PixelGrid pixels={SPRITE} pixelSize={4} />
+      </Box>
       <BoxText position={{ x: 0, y: 40 }} font={{ size: 9, color: "#80868b" }}>
         {`oklch sweep (click to rotate hue) · rgb sprite`}
       </BoxText>

@@ -154,15 +154,14 @@ function Sprite({
 }) {
   return (
     <>
-      <Image
+      <Box
         name={sprite.id}
         position={sprite.pos}
-        size={{ x: SPRITE }}
         zValue={sprite.pos.y}
-        src={sprite.img}
-        alt={sprite.id}
         style={highlighted ? { outline: "2px solid #1a73e8", borderRadius: "10px" } : undefined}
-      />
+      >
+        <Image size={{ x: SPRITE }} src={sprite.img} alt={sprite.id} />
+      </Box>
       <BoxText
         pivot={{ to: "topCenter" }}
         position={{ x: sprite.pos.x + SPRITE / 2, y: sprite.pos.y + SPRITE }}

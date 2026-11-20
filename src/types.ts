@@ -199,7 +199,7 @@ export interface BoxContextValue {
   childRects: ReadonlyMap<string, ChildRect>;
   zRanks: ReadonlyMap<string, number>;
   scrollOffset: Vec2;
-  registerChild: (id: string, rect: ChildRect) => void;
+  registerChild: (id: string, rect: ChildRect, element: Element | undefined) => void;
   unregisterChild: (id: string) => void;
   registerZ: (id: string, zValue: unknown) => void;
   unregisterZ: (id: string) => void;

@@ -64,6 +64,16 @@ export function CenteredCard({ position }: { position: Vec2 }) {
     >
       <CardHeader />
       <CardRows />
+      <BoxText
+        name="card-pinned-label"
+        sticky
+        position={{ x: 206, y: 70 }}
+        zValue={2}
+        font={{ size: 10, weight: 600, color: "#1a73e8" }}
+        style={{ backgroundColor: "#e8f0fe", borderRadius: "4px" }}
+      >
+        {`unsized text, sticky too`}
+      </BoxText>
     </Box>
   );
 }

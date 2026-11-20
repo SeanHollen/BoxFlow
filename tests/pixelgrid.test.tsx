@@ -240,13 +240,18 @@ describe("PixelGrid", () => {
   it("backs the grid with one source-resolution canvas scaled without smoothing", () => {
     render(
       <BoxRoot>
-        <PixelGrid name="grid" pixelSize={4} pixels={[[RED, GREEN, BLUE]]} />
+        <Box name="grid">
+          <PixelGrid pixelSize={4} pixels={[[RED, GREEN, BLUE]]} />
+        </Box>
       </BoxRoot>,
     );
     const canvas = document.querySelector('[data-boxflow-name="grid"] canvas') as HTMLCanvasElement;
     expect(canvas.width).toBe(3);
     expect(canvas.height).toBe(1);
     expect(canvas.style.imageRendering).toBe("pixelated");
+    expect(canvas.style.width).toBe("12px");
+    expect(canvas.style.height).toBe("4px");
+    expect(canvas.style.left).toBe("0px");
     expect(putImageData).toHaveBeenCalledTimes(1);
   });
 

@@ -61,37 +61,53 @@ describe("Embed", () => {
     expect(stacked?.style.left).toBe("0px");
   });
 
-  it("fixes a given axis and measures the other", () => {
+  it("sits at the parent's origin; the enclosing Box does the positioning", () => {
     render(
       <BoxRoot>
-        <Box name="panel">
-          <Embed size={{ x: 200 }}>
+        <Box position={{ x: 30, y: 12 }} stackMode="vertical">
+          <Embed>
+            <span data-testid="content" />
+          </Embed>
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByTestId("content").parentElement;
+    expect(el?.style.left).toBe("0px");
+    expect(el?.style.top).toBe("0px");
+    expect(el?.style.transform).toBe("");
+  });
+
+  it("lays out at max-content inside a content-hugging parent instead of wrapping to it", () => {
+    render(
+      <BoxRoot>
+        <Box stackMode="vertical">
+          <Embed>
+            <span data-testid="content">{`{"FullyConnected":10}`}</span>
+            <button>{`Add Layer Below`}</button>
+          </Embed>
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByTestId("content").parentElement;
+    expect(el?.style.width).toBe("max-content");
+    expect(el?.style.maxWidth).toBe("");
+  });
+
+  it("wraps at a fixed-width parent's edge while the parent's height hugs it", () => {
+    render(
+      <BoxRoot>
+        <Box size={{ x: 200 }}>
+          <Embed>
             <form data-testid="form" />
           </Embed>
           <span data-testid="marker" />
         </Box>
       </BoxRoot>,
     );
-    const embedEl = screen.getByTestId("form").parentElement;
-    expect(embedEl?.style.width).toBe("200px");
-    const panel = screen.getByTestId("marker").parentElement;
-    expect(panel?.style.width).toBe("200px");
-    expect(panel?.style.height).toBe("40px");
-  });
-
-  it("positions with pivots like any box", () => {
-    render(
-      <BoxRoot>
-        <Box size={{ x: 400, y: 300 }}>
-          <Embed pivot={{ from: "bottomRight" }} position={{ x: -10, y: -10 }}>
-            <form data-testid="form" />
-          </Embed>
-        </Box>
-      </BoxRoot>,
-    );
     const el = screen.getByTestId("form").parentElement;
-    expect(el?.style.left).toBe("390px");
-    expect(el?.style.top).toBe("290px");
-    expect(el?.style.transform).toBe("translate(-100%, -100%)");
+    expect(el?.style.width).toBe("max-content");
+    expect(el?.style.maxWidth).toBe("200px");
+    const panel = screen.getByTestId("marker").parentElement;
+    expect(panel?.style.height).toBe("40px");
   });
 });

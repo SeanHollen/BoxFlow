@@ -1,7 +1,7 @@
 import type { ParentAxis } from "../src/index";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Box, BoxRoot, BoxText, useParentBoxProps } from "../src/index";
+import { Box, BoxRoot, BoxText, Embed, useParentBoxProps } from "../src/index";
 
 class ResizeObserverStub {
   observe() {}
@@ -589,6 +589,75 @@ describe("sibling-relative placement", () => {
     const b = screen.getByTestId("b").parentElement;
     expect(b?.style.left).toBe("170px");
     expect(b?.style.top).toBe("40px");
+  });
+
+  it("follows JSX order when an earlier sibling mounts after the later ones", () => {
+    function Stack({ showFirst }: { showFirst: boolean }) {
+      return (
+        <BoxRoot>
+          {showFirst ? (
+            <Box stackMode="vertical" size={{ x: 50, y: 20 }}>
+              <span data-testid="first" />
+            </Box>
+          ) : null}
+          <Box stackMode="vertical" size={{ x: 50, y: 10 }}>
+            <span data-testid="second" />
+          </Box>
+        </BoxRoot>
+      );
+    }
+    const view = render(<Stack showFirst={false} />);
+    view.rerender(<Stack showFirst />);
+    expect(screen.getByTestId("first").parentElement?.style.top).toBe("0px");
+    expect(screen.getByTestId("second").parentElement?.style.top).toBe("20px");
+  });
+
+  it("follows the new JSX order when keyed siblings are reordered", () => {
+    function Stack({ order }: { order: string[] }) {
+      return (
+        <BoxRoot>
+          {order.map((label) => (
+            <Box key={label} stackMode="vertical" size={{ x: 50, y: label === "tall" ? 30 : 10 }}>
+              <span data-testid={label} />
+            </Box>
+          ))}
+        </BoxRoot>
+      );
+    }
+    const view = render(<Stack order={["tall", "short"]} />);
+    expect(screen.getByTestId("short").parentElement?.style.top).toBe("30px");
+    view.rerender(<Stack order={["short", "tall"]} />);
+    expect(screen.getByTestId("short").parentElement?.style.top).toBe("0px");
+    expect(screen.getByTestId("tall").parentElement?.style.top).toBe("10px");
+  });
+
+  it("orders Embed content among boxes by JSX position", () => {
+    function Stack({ showLabel }: { showLabel: boolean }) {
+      return (
+        <BoxRoot>
+          {showLabel ? (
+            <Box stackMode="vertical">
+              <Embed>
+                <button>{`Add Layer`}</button>
+              </Embed>
+            </Box>
+          ) : null}
+          <Box stackMode="vertical" size={{ x: 50, y: 10 }}>
+            <span data-testid="layer" />
+          </Box>
+        </BoxRoot>
+      );
+    }
+    const original = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
+      configurable: true,
+      get: () => 40,
+    });
+    const view = render(<Stack showLabel={false} />);
+    view.rerender(<Stack showLabel />);
+    const top = screen.getByTestId("layer").parentElement?.style.top;
+    if (original) Object.defineProperty(HTMLElement.prototype, "offsetHeight", original);
+    expect(top).toBe("40px");
   });
 
   it("rejects pivot combined with stackMode", () => {

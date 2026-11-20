@@ -1,6 +1,6 @@
-import { Fragment, useCallback, useState } from "react";
+import { Fragment, useCallback } from "react";
 import type { ReactNode } from "react";
-import { BoxContext, useBoxContext } from "./context.js";
+import { BoxContext, useBoxContext, useOrderedRects } from "./context.js";
 import type { BoxContextValue, ChildRect, Vec2 } from "./types.js";
 
 export interface ArrangeItemContext {
@@ -14,41 +14,29 @@ export interface ArrangeProps<T> {
   render: (item: T, context: ArrangeItemContext) => ReactNode;
 }
 
-function sameRect(a: ChildRect, b: ChildRect): boolean {
-  return a.left === b.left && a.top === b.top && a.right === b.right && a.bottom === b.bottom;
-}
-
 export function Arrange<T>({ items, render }: ArrangeProps<T>) {
   const parent = useBoxContext();
-  const [itemRects, setItemRects] = useState<ReadonlyMap<string, ChildRect>>(() => new Map());
-
+  const {
+    rects: itemRects,
+    register: registerItem,
+    unregister: unregisterItem,
+  } = useOrderedRects(items);
   const { registerChild: parentRegister, unregisterChild: parentUnregister } = parent;
 
   const registerChild = useCallback(
-    (id: string, rect: ChildRect) => {
-      parentRegister(id, rect);
-      setItemRects((prev) => {
-        const existing = prev.get(id);
-        if (existing && sameRect(existing, rect)) return prev;
-        const next = new Map(prev);
-        next.set(id, rect);
-        return next;
-      });
+    (id: string, rect: ChildRect, element: Element | undefined) => {
+      parentRegister(id, rect, element);
+      registerItem(id, rect, element);
     },
-    [parentRegister],
+    [parentRegister, registerItem],
   );
 
   const unregisterChild = useCallback(
     (id: string) => {
       parentUnregister(id);
-      setItemRects((prev) => {
-        if (!prev.has(id)) return prev;
-        const next = new Map(prev);
-        next.delete(id);
-        return next;
-      });
+      unregisterItem(id);
     },
-    [parentUnregister],
+    [parentUnregister, unregisterItem],
   );
 
   const value: BoxContextValue = { ...parent, registerChild, unregisterChild };

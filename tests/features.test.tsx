@@ -166,18 +166,23 @@ describe("useParentScroll", () => {
 });
 
 describe("Image", () => {
-  it("stretches the img to its box", () => {
+  it("draws at the size it is given and reports it to the Box that positions it", () => {
     render(
       <BoxRoot>
-        <Image position={{ x: 5, y: 6 }} size={{ x: 80, y: 60 }} src="sprite.png" alt="sprite" />
+        <Box position={{ x: 5, y: 6 }}>
+          <Image size={{ x: 80, y: 60 }} src="sprite.png" alt="sprite" />
+          <span data-testid="marker" />
+        </Box>
       </BoxRoot>,
     );
     const img = screen.getByAltText("sprite");
-    expect(img.style.objectFit).toBe("");
-    expect(img.style.width).toBe("100%");
-    const box = img.parentElement;
+    expect(img.style.width).toBe("80px");
+    expect(img.style.height).toBe("60px");
+    expect(img.style.left).toBe("0px");
+    const box = screen.getByTestId("marker").parentElement;
     expect(box?.style.left).toBe("5px");
     expect(box?.style.width).toBe("80px");
+    expect(box?.style.height).toBe("60px");
   });
 });
 
@@ -665,11 +670,17 @@ describe("Image proportional sizing", () => {
   it("derives the missing axis from the natural aspect ratio", () => {
     render(
       <BoxRoot>
-        <Image size={{ x: 200 }} src="sprite.png" alt="wide" />
+        <Box>
+          <Image size={{ x: 200 }} src="sprite.png" alt="wide" />
+          <span data-testid="marker" />
+        </Box>
       </BoxRoot>,
     );
     fireEvent.load(screen.getByAltText("wide"));
-    const box = screen.getByAltText("wide").parentElement;
+    const img = screen.getByAltText("wide");
+    expect(img.style.width).toBe("200px");
+    expect(img.style.height).toBe("100px");
+    const box = screen.getByTestId("marker").parentElement;
     expect(box?.style.width).toBe("200px");
     expect(box?.style.height).toBe("100px");
   });
@@ -677,11 +688,14 @@ describe("Image proportional sizing", () => {
   it("uses the natural size when no size is given", () => {
     render(
       <BoxRoot>
-        <Image src="sprite.png" alt="natural" />
+        <Box>
+          <Image src="sprite.png" alt="natural" />
+          <span data-testid="marker" />
+        </Box>
       </BoxRoot>,
     );
     fireEvent.load(screen.getByAltText("natural"));
-    const box = screen.getByAltText("natural").parentElement;
+    const box = screen.getByTestId("marker").parentElement;
     expect(box?.style.width).toBe("100px");
     expect(box?.style.height).toBe("50px");
   });
@@ -689,14 +703,20 @@ describe("Image proportional sizing", () => {
   it("keeps the flip sign while deriving proportionally", () => {
     render(
       <BoxRoot>
-        <Image size={{ y: -100 }} src="sprite.png" alt="flipped" />
+        <Box>
+          <Image size={{ y: -100 }} src="sprite.png" alt="flipped" />
+          <span data-testid="marker" />
+        </Box>
       </BoxRoot>,
     );
     fireEvent.load(screen.getByAltText("flipped"));
-    const box = screen.getByAltText("flipped").parentElement;
+    const img = screen.getByAltText("flipped");
+    expect(img.style.width).toBe("200px");
+    expect(img.style.height).toBe("100px");
+    expect(img.style.transform).toContain("scaleY(-1)");
+    const box = screen.getByTestId("marker").parentElement;
     expect(box?.style.width).toBe("200px");
     expect(box?.style.height).toBe("100px");
-    expect(box?.style.transform).toContain("scaleY(-1)");
   });
 });
 
@@ -846,6 +866,31 @@ describe("sticky", () => {
     expect(el?.style.marginLeft).toBe("4px");
     expect(el?.style.width).toBe("80px");
     expect(el?.style.zIndex).toBe("1");
+  });
+
+  it("pins unsized BoxText the same way and stacks siblings below its pinned rectangle", () => {
+    render(
+      <BoxRoot>
+        <Box position={{ x: 0, y: 0 }} size={{ x: 100, y: 200 }} overflow={{ y: "scrollbar" }}>
+          <BoxText sticky position={{ x: 4, y: 6 }} zValue={1}>
+            {`pinned header`}
+          </BoxText>
+          <Box stackMode="vertical" size={{ x: 10, y: 10 }}>
+            <span data-testid="below" />
+          </Box>
+        </Box>
+      </BoxRoot>,
+    );
+    const el = screen.getByText("pinned header");
+    expect(el.style.position).toBe("sticky");
+    expect(el.style.top).toBe("6px");
+    expect(el.style.marginLeft).toBe("4px");
+    expect(el.style.left).toBe("");
+    expect(el.style.width).toBe("max-content");
+    expect(el.style.maxWidth).toBe("96px");
+    expect(el.style.zIndex).toBe("1");
+    const below = screen.getByTestId("below").parentElement;
+    expect(below?.style.top).toBe(`${6 + el.offsetHeight}px`);
   });
 });
 

@@ -59,7 +59,7 @@ export function BoxRoot({
   const ref = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<Vec2 | undefined>(undefined);
   const { childRects, childZ, registerChild, unregisterChild, registerZ, unregisterZ } =
-    useChildRects();
+    useChildRects(children);
 
   const inspectUrl =
     typeof inspect === "object" ? (inspect.url ?? DEFAULT_INSPECT_URL) : DEFAULT_INSPECT_URL;

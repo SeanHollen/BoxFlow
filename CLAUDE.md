@@ -1,6 +1,6 @@
 # BoxFlow
 
-Coordinate-based layout library for React. `npm run check` is the only verification command — it runs oxlint (type-aware), oxfmt, tsc, and vitest in order. Never run those tools individually, never `npm run build` unless shipping.
+Coordinate-based layout library for React. `npm run check` is the only verification command — it runs oxlint (type-aware), oxfmt, tsc, and vitest in order. Never run those tools individually, never `npm run build` unless shipping. `npm run visual` is a separate screenshot change detector (headless Chrome, report-only): run it before and after a visual change to see which pixels and named boxes moved.
 
 ## Code rules
 
@@ -10,6 +10,13 @@ Coordinate-based layout library for React. `npm run check` is the only verificat
 - Reuse exported types instead of redeclaring inline unions.
 - Don't comment interface fields unless genuinely ambiguous; comments are a code smell.
 - Tests are written before the change they verify, run to confirm they fail, then the source changes. Delete tests whose guarded behavior is gone.
+
+## Components are not boxes
+
+- Only components with "Box" in their name (`Box`, `BoxText`) are boxes and may inherit `BoxBaseProps`. Never make any other component a box by inheriting `BoxBaseProps`/`BoxProps` or rendering a `Box` to pick up its props. Declare exactly the props the component needs; when the user specifies a component's props, those are its props.
+- A prop that happens to share a name with a `Box` prop (e.g. `size` on `Image`) is fine when the component itself needs it. The banned thing is the assumption that everything should be a box.
+- Content (images, grids, embedded HTML) sizes itself and reports that rectangle to its enclosing `Box` via `useContentRect`; positioning, click handlers, and overlays belong to the `Box` around it.
+- Keep the concepts separate in docs too: never suggest skipping a `Box` because another component accepts its props. The plain, obvious usage (`<Box …><Content/></Box>`) is the correct one and must just work.
 
 ## Definition of done for features
 

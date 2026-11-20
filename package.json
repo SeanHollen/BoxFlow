@@ -18,6 +18,7 @@
   "scripts": {
     "check": "oxlint --type-aware src/ tests/ example/ && oxfmt --write src/ tests/ example/ && tsc --noEmit && vitest run",
     "test": "vitest run",
+    "visual": "vitest run --config vitest.visual.config.ts",
     "dev": "vite example",
     "build": "tsc -p tsconfig.build.json",
     "prepare": "npm run build"
@@ -28,6 +29,7 @@
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@testing-library/react": "^16.3.0",
+    "@types/pngjs": "^6.0.5",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^4.5.0",
@@ -35,6 +37,9 @@
     "oxfmt": "^0.68.0",
     "oxlint": "^1.83.0",
     "oxlint-tsgolint": "^7.0.2001",
+    "pixelmatch": "^8.0.0",
+    "playwright-core": "^1.65.1",
+    "pngjs": "^7.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "typescript": "^5.8.0",

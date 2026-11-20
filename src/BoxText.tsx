@@ -113,10 +113,15 @@ function IntrinsicText(props: IntrinsicBoxTextProps) {
 
   const { from, to } = attachFor(pivot, stackMode);
   const reference = useReferenceRect(id, relativeTo, stackMode);
+  const isSticky = props.sticky === true;
   const anchor = pivotFraction(from);
-  const own = pivotFraction(to);
-  const left = reference.left + anchor.x * (reference.right - reference.left) + position.x;
-  const top = reference.top + anchor.y * (reference.bottom - reference.top) + position.y;
+  const own = isSticky ? ZERO_VEC : pivotFraction(to);
+  const left = isSticky
+    ? position.x
+    : reference.left + anchor.x * (reference.right - reference.left) + position.x;
+  const top = isSticky
+    ? position.y
+    : reference.top + anchor.y * (reference.bottom - reference.top) + position.y;
 
   const fontSize = font?.size;
   const fontFamily = font?.family;
@@ -189,16 +194,20 @@ function IntrinsicText(props: IntrinsicBoxTextProps) {
 
   const { registerChild: parentRegister, unregisterChild: parentUnregister } = parent;
   useLayoutEffect(() => {
-    parentRegister(id, {
-      left: rectLeft,
-      top: rectTop,
-      right: rectLeft + width,
-      bottom: rectTop + height,
-      anchorX,
-      anchorY,
-      reachX,
-      reachY,
-    });
+    parentRegister(
+      id,
+      {
+        left: rectLeft,
+        top: rectTop,
+        right: rectLeft + width,
+        bottom: rectTop + height,
+        anchorX,
+        anchorY,
+        reachX,
+        reachY,
+      },
+      ref.current ?? undefined,
+    );
   }, [id, parentRegister, rectLeft, rectTop, width, height, anchorX, anchorY, reachX, reachY]);
   useLayoutEffect(() => () => parentUnregister(id), [id, parentUnregister]);
 
@@ -211,7 +220,7 @@ function IntrinsicText(props: IntrinsicBoxTextProps) {
   }, [id, zValue, parentRegisterZ, parentUnregisterZ]);
 
   const { childRects, childZ, registerChild, unregisterChild, registerZ, unregisterZ } =
-    useChildRects();
+    useChildRects(children);
   const insets = borderInset(border);
   const insetX = insets.left + insets.right;
   const insetY = insets.top + insets.bottom;
@@ -256,6 +265,9 @@ function IntrinsicText(props: IntrinsicBoxTextProps) {
   if (sizeX === undefined && sizeY === undefined) {
     if (parentWidthIsChildDriven) {
       cssWidth = "max-content";
+    } else if (isSticky) {
+      cssWidth = "max-content";
+      cssMaxWidth = Math.max(0, parent.resolvedInnerSize.x - left);
     } else if (own.x !== 0) {
       cssWidth = "max-content";
       cssMaxWidth = parent.resolvedInnerSize.x;
@@ -271,9 +283,9 @@ function IntrinsicText(props: IntrinsicBoxTextProps) {
   const transform = transformParts.length > 0 ? transformParts.join(" ") : undefined;
 
   const layoutStyle: CSSProperties = {
-    position: "absolute",
-    left,
-    top,
+    ...(isSticky
+      ? { position: "sticky" as const, top, marginLeft: left }
+      : { position: "absolute" as const, left, top }),
     transform,
     width: cssWidth,
     maxWidth: cssMaxWidth,

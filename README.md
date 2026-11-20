@@ -78,7 +78,7 @@ For anything beyond straight stacks, spell out the pivots — this puts a box to
 <Box relativeTo="siblings" pivot={{ from: "topRight", to: "topLeft" }} position={{ x: 10, y: 0 }} ... />
 ```
 
-Sibling rectangles come from the same registration channel as `childTotals`, so stacked siblings settle one layout pass after they first render, and re-settle when any member moves or resizes — remove a box from the middle of a stack and the rest close ranks.
+Sibling rectangles come from the same registration channel as `childTotals`, so stacked siblings settle one layout pass after they first render, and re-settle when any member moves or resizes — remove a box from the middle of a stack and the rest close ranks. The chain always follows JSX order (the order the elements sit in the DOM), not the order they happened to mount: a box that appears later because of state or hot reload slots in where it is written, and reordering a keyed list restacks it in the new order.
 
 #### Child-driven sizing
 
@@ -155,28 +155,36 @@ Intrinsically sized text measures itself in the browser (a `ResizeObserver`, plu
 
 ### `<Embed>`
 
-The bridge for content that isn't part of the component system — native forms, canvases, videos, third-party widgets. A `Box` only sees registered children, so raw HTML dropped inside one is invisible to layout: a hugging parent measures it as zero and stacked siblings attach at zero. `Embed` wraps foreign content in a measured rectangle (a `ResizeObserver`, settled before paint) and registers it, making it a first-class citizen: it counts toward `childTotals`, siblings can stack against it, and `position`/`pivot`/`stackMode` work on it like on any box.
+The bridge for content that isn't part of the component system — native forms, canvases, videos, third-party widgets. A `Box` only sees registered children, so raw HTML dropped inside one is invisible to layout: a hugging parent measures it as zero and stacked siblings attach at zero. `Embed` wraps foreign content in a measured rectangle (a `ResizeObserver`, settled before paint) and registers it with its parent, so the parent's `childTotals` and the sibling chain see the content's real size.
+
+`Embed` is not a box: it takes no `Box` props, only `children`. It sits at its parent's origin, and placement and constraints come from the `Box` around it:
 
 ```tsx
-<Embed stackMode="vertical" position={{ x: 0, y: 8 }}>
-  <form>…</form>
-</Embed>
+<Box stackMode="vertical" position={{ y: 8 }}>
+  <Embed>
+    <form>…</form>
+  </Embed>
+</Box>
 ```
 
-`size?: { x?, y? }` fixes an axis while the other stays measured — `size={{ x: 300 }}` is a form constrained to 300px whose height follows its content.
+The content lays out at `max-content`, capped at the parent's width when the parent has one. In a content-hugging parent nothing wraps (a row of buttons stays one row) and the parent grows to fit; in a `Box` with a fixed width the content wraps at that width and a hugging height follows it — `size={{ x: 300 }}` on the wrapping `Box` is a form constrained to 300px whose height follows its content.
 
 ### `<PixelGrid>`
 
 A grid of individually colored cells, for pixel art, heatmaps, cellular automata, or any per-cell color data. `pixels` is a row-major 2D array (`pixels[y][x]`), each cell a color tuple:
 
 ```tsx
-<PixelGrid pixelSize={8} pixels={[[[255, 0, 0], [0, 0, 255, 0.5]]]} />
-<PixelGrid pixelSize={4} colorSpace="oklch" pixels={[[[0.7, 0.15, 30], [0.7, 0.15, 210]]]} />
+<Box position={{ x: 20, y: 20 }}>
+  <PixelGrid pixelSize={8} pixels={[[[255, 0, 0], [0, 0, 255, 0.5]]]} />
+</Box>
+<Box stackMode="vertical" position={{ y: 8 }}>
+  <PixelGrid pixelSize={4} colorSpace="oklch" pixels={[[[0.7, 0.15, 30], [0.7, 0.15, 210]]]} />
+</Box>
 ```
 
 With `colorSpace="rgb"` (the default) a cell is `[r, g, b]` with channels 0–255; with `"oklch"` it is `[l, c, h]` — lightness 0–1, chroma (roughly 0–0.4), hue in degrees — converted to sRGB with out-of-gamut channels clamped. Either form takes an optional fourth element, alpha 0–1. Ragged rows are padded with transparent cells to the longest row.
 
-The box is exactly `columns × pixelSize` by `rows × pixelSize`, so it registers a real rectangle: it counts toward `childTotals`, siblings stack against it, and all `Box` props (`position`, `pivot`, `onClick`, …) apply. Children render on top of the cells.
+`PixelGrid` is content, not a box: it sizes itself to exactly `columns × pixelSize` by `rows × pixelSize` and reports that rectangle to the `Box` it sits in, at that box's origin. Positioning, click handlers, and overlays belong to that `Box` — a content-hugging `Box` takes the grid's size, so siblings stack against it and parents count it.
 
 All cells paint into a single canvas at source resolution (one canvas pixel per cell), scaled up with `image-rendering: pixelated` — no per-cell DOM, so a 1024×1024 grid is one element.
 
@@ -266,23 +274,22 @@ Child `Box` anchor math (`pivot.from` against the parent) always uses the inner 
 - `font?: { family?, size?, weight?, color?, lineHeight?, letterSpacing?, align?, style? }` — `align` is `"left" | "center" | "right"`; `style` is one of or an array of `"bold" | "italic" | "underline" | "strikethrough"`.
 - `baseline?: boolean` — `position.y` names the first line's **baseline** (the line the letters sit on) instead of the box top, so texts of different font sizes given the same y sit on the same line. Computed from canvas font metrics; approximate with exotic fonts or before webfonts load.
 
-`<Image>` — all `Box` props, plus:
+`<Image>` — content, not a box: it sizes itself and reports that size to the `Box` it sits in (at that box's origin), which does the positioning:
 
 - `src: string`
 - `alt?: string`
-- Sizing is the fit policy: both axes set → the image stretches to exactly that box; **one axis set → the other is derived from the image's natural aspect ratio** (no distortion); no size → the image's natural pixel size. A negative axis mirrors the image; derived axes appear once the image loads (cached images resolve immediately).
+- `size?: { x?: number, y?: number }` — the fit policy: both axes set → the image stretches to exactly that box; **one axis set → the other is derived from the image's natural aspect ratio** (no distortion); no size → the image's natural pixel size. A negative axis mirrors the image; derived axes appear once the image loads (cached images resolve immediately).
 
 `<Arrange>` — not a box: a rendering strategy for the children of whatever `Box` it sits in. It folds over items, giving each one the measured rectangles of the items before it — the primitive for wrap layouts, masonry, or any sequential placement you compute yourself. Its items are ordinary children of the enclosing `Box` (they count toward its `childTotals`, join its sibling chain, and so on):
 
 - `items: readonly T[]`
 - `render: (item, { index, prior, parentSize }) => ReactNode` — `prior` is the ordered list of already-measured `ChildRect`s for items before this one; `parentSize` is the enclosing box's inner pixel size. Each render should return one positioned element (wrap multi-part items in a single `Box`).
 
-`<Embed>` — all `Box` props except `size`, plus:
+`<Embed>` — no `Box` props; position and constrain it with a wrapping `Box`:
 
-- `size?: { x?: number, y?: number }` — fixed axes; unset axes are measured from the foreign content inside.
-- Children are raw HTML (or anything), rendered in normal CSS flow inside the measured rectangle.
+- `children` — raw HTML (or anything), laid out at `max-content` and capped at the parent's width when the parent has one. The measured rectangle sits at the parent's origin and registers with the parent like a child box.
 
-`<PixelGrid>` — all `Box` props except `size` (the size is derived), plus:
+`<PixelGrid>` — content, not a box: it sizes itself to `columns × pixelSize` by `rows × pixelSize` and reports that size to the `Box` it sits in, which does the positioning:
 
 - `pixels: PixelColor[][]` — row-major cells; `PixelColor` is `[a, b, c]` or `[a, b, c, alpha]` (alpha 0–1). Diffed against the previous array by row and cell identity, then by value; only changed cells are converted and uploaded. Update immutably (copy the outer array and the changed rows).
 - `pixelSize?: number` — on-screen pixels per cell. Default `1`.
@@ -382,14 +389,28 @@ import { Box, BoxRoot, BoxText } from "boxflow";
 ```
 npm install
 npm run check   # oxlint + oxfmt + tsc + vitest
+npm run visual  # screenshot change detector (see below)
 npm run dev     # serve the example app (example/) with Vite
 npm run build   # emit dist/
 ```
 
-The `example/` directory is a small Vite app exercising every feature of the library. It has three tabs (the tab bar itself is built from `Box`es with a `childTotals` wrapper): **Demos**, where each card carries a caption naming the features it shows; **CSS recipes**, familiar patterns rebuilt with coordinates — navbar (space-between), holy-grail layout, a 1fr-column card grid, media object, hero overlay, corner badge with tooltip, a percentage progress bar, a collapsed-borders grid with a `sides: "bottom"` header rule, the shape primitives (`Line`/`Polygon`/`Ellipse`, including `stroke="none"` dots), CSS islands (nested `BoxRoot size={{x, y}}` and `fill="parent"` roots bridged by `Embed`), hover & click (pointer handlers on boxes and shapes, automatic `cursor: pointer`, a `clickThrough` veil the chips stay hoverable through), rotate & flip (`rotate`, negative-size mirroring, a `dangerousPositionStyles` skew), and a pixel grid (`PixelGrid` with an oklch hue sweep that rotates on click — a fresh `pixels` array per click repaints the canvas — beside an rgb sprite stacked with `stackMode`), each card labeling the CSS it replaces, all flowed onto rows by `<Arrange>` (grid auto-flow) inside a scrollable box; and **Playground**, a full-screen dashed canvas backed by the empty `example/Playground.tsx` — put your own boxes there and hot reload renders them inside it. The demos:
+### Visual change detector
+
+`npm run visual` renders the example app in headless Google Chrome (your installed Chrome, driven by `playwright-core`; nothing is downloaded), screenshots each tab (Demos, CSS recipes, Playground) at 1400×2200, and compares every screenshot pixel-for-pixel with the previous run's. It reports, never fails:
+
+```
+recipes: 3240 px changed in 1 region(s), diff: .visual/diff/recipes.png
+  x 988–1095, y 774–803 (108×30, 3240 px changed) in: recipes › pixel-sweep
+```
+
+Changed pixels are grouped into regions, and each region lists the named boxes it touches (the deepest `name` props from the layout inspector tree, as a `parent › child` path — another reason to name boxes). `.visual/diff/<tab>.png` is a `pixelmatch` image: the page faded out with changed pixels in red. After each run the new screenshots become the baseline, so the next run compares against this one. The first run only saves a baseline.
+
+Screenshots are deterministic: `requestAnimationFrame` never fires in the captured page, so the Playfield sprites stay at their fixed starting positions, the debug inspector is closed, the pointer is parked in a corner, and posts to the layout MCP server are blocked so the captures never overwrite its snapshot. Two back-to-back runs report zero changed pixels. Everything lives in `.visual/` (gitignored): `previous/` (baseline PNGs plus layout trees), `diff/`, and `report.txt`.
+
+The `example/` directory is a small Vite app exercising every feature of the library. It has three tabs (the tab bar itself is built from `Box`es with a `childTotals` wrapper): **Demos**, where each card carries a caption naming the features it shows; **CSS recipes**, familiar patterns rebuilt with coordinates — navbar (space-between), holy-grail layout, a 1fr-column card grid, media object, hero overlay, corner badge with tooltip, a percentage progress bar, a collapsed-borders grid with a `sides: "bottom"` header rule, the shape primitives (`Line`/`Polygon`/`Ellipse`, including `stroke="none"` dots), CSS islands (nested `BoxRoot size={{x, y}}` and `fill="parent"` roots bridged by `Embed`), hover & click (pointer handlers on boxes and shapes, automatic `cursor: pointer`, a `clickThrough` veil the chips stay hoverable through), rotate & flip (`rotate`, negative-size mirroring, a `dangerousPositionStyles` skew), and a pixel grid (an oklch hue sweep `PixelGrid` inside a `Box` whose `onClick` rotates the hue — a fresh `pixels` array per click repaints the canvas — beside an rgb sprite grid whose `Box` stacks with `stackMode`), each card labeling the CSS it replaces, all flowed onto rows by `<Arrange>` (grid auto-flow) inside a scrollable box; and **Playground**, a full-screen dashed canvas backed by the empty `example/Playground.tsx` — put your own boxes there and hot reload renders them inside it. The demos:
 
 - **TopBars** — the split bars from the snippet above: `useParentBoxProps` plus `resolvedAxis`, sizes derived from the root.
-- **Playfield** — bouncing sprite images driven by a `requestAnimationFrame` loop. Sprites are `Image`s sized on one axis only (height derived from the natural aspect ratio), stacked by `zValue` through a custom `zSort`, and a dashed `Line` tracks the closest pair. Shows the payoff of positions being plain data: every frame it computes each sprite's nearest neighbor and the overall closest pair straight from the `position` values — no `getBoundingClientRect` — and renders the distances as labels that track the sprites.
-- **Scrollable card** — an inset border (`overlay: false`) with `countBorder`, per-axis `overflow` (`clip` + `scrollbar`), a header pinned with `sticky` + `zValue` while `useParentScroll()` feeds its live scrolled-distance readout, row labels vertically centered by pivoting intrinsic `BoxText`. The Demos tab itself sits on the root's `minSize`: narrow the window below 1160px and the page scrolls horizontally instead of letting columns collide.
-- **AutoPanel** (left column, below the playfield) — sibling stacking and child-driven sizing together: every row is `stackMode="vertical"` with `position` as the gap (no manual y math anywhere), and the panel itself uses the function form (`(xt, yt) => ({ x: xt + 24, y: yt + 24 })` for 12px padding). Its chip shelf covers the rest: an unsized (content-hugging) strip of horizontally stacked chips, then a `size={{ x: 40 }}` column placed beside it with an explicit sibling pivot pair (`relativeTo="siblings" pivot={{ from: "topRight", to: "topLeft" }}`), both wrapped in a content-hugging box so the row below stacks under the taller of the two. Rows sample every `font.style`, the title uses `letterSpacing`, one paragraph wraps at `size={{ x: 180 }}` with `align: "center"` and `lineHeight`, one text fits `size={{ y: 42 }}` by finding its own width, and one row prints what `useParentBoxProps` reports inside a child-driven box — `kind: "childTotals"` — and the native `<form>` inside `<Embed>` is width-constrained (`size={{ x: 170 }}`) with its height measured.
+- **Playfield** — bouncing sprite images driven by a `requestAnimationFrame` loop. Each sprite is a content-hugging `Box` (carrying `position`, `zValue`, and the highlight outline) around an `Image` sized on one axis only (height derived from the natural aspect ratio); the boxes are stacked by `zValue` through a custom `zSort`, and a dashed `Line` tracks the closest pair. Shows the payoff of positions being plain data: every frame it computes each sprite's nearest neighbor and the overall closest pair straight from the `position` values — no `getBoundingClientRect` — and renders the distances as labels that track the sprites.
+- **Scrollable card** — an inset border (`overlay: false`) with `countBorder`, per-axis `overflow` (`clip` + `scrollbar`), a header pinned with `sticky` + `zValue` while `useParentScroll()` feeds its live scrolled-distance readout, an unsized `BoxText` label pinned with `sticky` above the rows (sized to its text), row labels vertically centered by pivoting intrinsic `BoxText`. The Demos tab itself sits on the root's `minSize`: narrow the window below 1160px and the page scrolls horizontally instead of letting columns collide.
+- **AutoPanel** (left column, below the playfield) — sibling stacking and child-driven sizing together: every row is `stackMode="vertical"` with `position` as the gap (no manual y math anywhere), and the panel itself uses the function form (`(xt, yt) => ({ x: xt + 24, y: yt + 24 })` for 12px padding). Its chip shelf covers the rest: an unsized (content-hugging) strip of horizontally stacked chips, then a `size={{ x: 40 }}` column placed beside it with an explicit sibling pivot pair (`relativeTo="siblings" pivot={{ from: "topRight", to: "topLeft" }}`), both wrapped in a content-hugging box so the row below stacks under the taller of the two. Rows sample every `font.style`, the title uses `letterSpacing`, one paragraph wraps at `size={{ x: 180 }}` with `align: "center"` and `lineHeight`, one text fits `size={{ y: 42 }}` by finding its own width, and one row prints what `useParentBoxProps` reports inside a child-driven box — `kind: "childTotals"` — the native `<form>` inside `<Embed>` sits in a `Box` of `size={{ x: 170 }}` that wraps it at that width while the Box's height hugs the measured form, an `<Embed>` of native buttons in a content-hugging `Box` below it lays out at `max-content` on one line, and a button inserts a `BoxText` above the next line of the stack — mounted after its sibling, it still stacks in JSX order.
 - **CornerBadge** — a `Box` pinned to the bottom-right corner that auto-fits its label: a per-axis size function (`size={{ x: (xt) => xt + 12, y: 36 }}`) adds padding around the intrinsic `BoxText` inside it.

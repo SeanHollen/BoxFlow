@@ -1,6 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { Box } from "./Box.js";
-import type { BoxBaseProps } from "./Box.js";
+import { useContentRect } from "./contentRect.js";
 
 export type PixelColor =
   | readonly [number, number, number]
@@ -10,7 +9,7 @@ export type PixelColorSpace = "rgb" | "oklch";
 
 export type PixelRows = readonly (readonly PixelColor[])[];
 
-export interface PixelGridProps extends BoxBaseProps {
+export interface PixelGridProps {
   pixels: PixelRows;
   pixelSize?: number;
   colorSpace?: PixelColorSpace;
@@ -264,20 +263,17 @@ export function pixelsToRgba(pixels: PixelRows, colorSpace: PixelColorSpace): Rg
   return { width: raster.width, height: raster.height, data: raster.data };
 }
 
-export function PixelGrid({
-  pixels,
-  pixelSize = 1,
-  colorSpace = "rgb",
-  children,
-  ...boxProps
-}: PixelGridProps) {
+export function PixelGrid({ pixels, pixelSize = 1, colorSpace = "rgb" }: PixelGridProps) {
   const [raster] = useState(() => new PixelRaster());
   const imageRef = useRef<ImageData | undefined>(undefined);
   const width = gridWidth(pixels);
   const height = pixels.length;
+  const elementRef = useRef<HTMLCanvasElement | null>(null);
+  useContentRect(width * pixelSize, height * pixelSize, elementRef);
 
   const paint = useCallback(
     (canvas: HTMLCanvasElement | null) => {
+      elementRef.current = canvas;
       if (!canvas) return;
       const dirty = raster.update(pixels, colorSpace);
       if (!dirty) return;
@@ -294,14 +290,20 @@ export function PixelGrid({
   );
 
   return (
-    <Box {...boxProps} size={{ x: width * pixelSize, y: height * pixelSize }}>
-      <canvas
-        ref={paint}
-        width={width}
-        height={height}
-        style={{ width: "100%", height: "100%", display: "block", imageRendering: "pixelated" }}
-      />
-      {children}
-    </Box>
+    <canvas
+      ref={paint}
+      width={width}
+      height={height}
+      data-boxflow-kind="pixelgrid"
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        width: width * pixelSize,
+        height: height * pixelSize,
+        display: "block",
+        imageRendering: "pixelated",
+      }}
+    />
   );
 }

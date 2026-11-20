@@ -1,4 +1,4 @@
-import { useContext, useId, useLayoutEffect, useState } from "react";
+import { useContext, useId, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent, ReactNode, UIEvent } from "react";
 import { BoxContext, useBoxContext, useChildRects } from "./context.js";
 import { DebugContext, deadSpaceStyle, debugOutline, snapshotProps } from "./debug.js";
@@ -142,7 +142,7 @@ export function Box(props: BoxProps) {
   const id = useId();
   const debug = useContext(DebugContext);
   const { childRects, childZ, registerChild, unregisterChild, registerZ, unregisterZ } =
-    useChildRects();
+    useChildRects(children);
   const [scrollOffset, setScrollOffset] = useState<Vec2>(ZERO_VEC);
 
   const { position, size, pivot, stackMode, relativeTo, overflow, border, rotate } = mergeOverride(
@@ -224,18 +224,23 @@ export function Box(props: BoxProps) {
   const reachX = childReach(anchorX, topLeftX, resolvedX, parent.resolvedInnerSize.x);
   const reachY = childReach(anchorY, topLeftY, resolvedY, parent.resolvedInnerSize.y);
 
+  const elementRef = useRef<HTMLDivElement>(null);
   const { registerChild: parentRegister, unregisterChild: parentUnregister } = parent;
   useLayoutEffect(() => {
-    parentRegister(id, {
-      left: topLeftX,
-      top: topLeftY,
-      right: topLeftX + resolvedX,
-      bottom: topLeftY + resolvedY,
-      anchorX,
-      anchorY,
-      reachX,
-      reachY,
-    });
+    parentRegister(
+      id,
+      {
+        left: topLeftX,
+        top: topLeftY,
+        right: topLeftX + resolvedX,
+        bottom: topLeftY + resolvedY,
+        anchorX,
+        anchorY,
+        reachX,
+        reachY,
+      },
+      elementRef.current ?? undefined,
+    );
   }, [
     id,
     parentRegister,
@@ -297,6 +302,7 @@ export function Box(props: BoxProps) {
   return (
     <BoxContext.Provider value={value}>
       <div
+        ref={elementRef}
         data-boxflow-kind={kind}
         data-boxflow-name={props.name}
         {...pointerHandlers}

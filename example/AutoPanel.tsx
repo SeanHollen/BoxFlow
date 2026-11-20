@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Box, Embed, Inset, BoxText, Arrange, useParentBoxProps } from "../src/index";
 import type { StackMode, TextStyle, Vec2 } from "../src/index";
 
@@ -58,6 +59,39 @@ function ChipShelf() {
         <Chip stackMode="vertical" position={{ x: 0, y: 8 }} color="#1a73e8" />
       </Box>
     </Box>
+  );
+}
+
+function InsertAbove() {
+  const [inserted, setInserted] = useState(false);
+  return (
+    <>
+      <Box name="insert-toggle" stackMode="vertical" position={{ y: 8 }}>
+        <Embed>
+          <button style={{ fontSize: 11 }} onClick={() => setInserted((value) => !value)}>
+            {inserted ? `Remove the inserted line` : `Insert a line above the next one`}
+          </button>
+        </Embed>
+      </Box>
+      {inserted ? (
+        <BoxText
+          name="inserted-line"
+          stackMode="vertical"
+          position={{ y: 4 }}
+          font={{ size: 11, color: "#188038" }}
+        >
+          {`inserted: mounted after the line below, still stacked above it`}
+        </BoxText>
+      ) : null}
+      <BoxText
+        name="insert-anchor"
+        stackMode="vertical"
+        position={{ y: 4 }}
+        font={{ size: 11, color: "#5f6368" }}
+      >
+        {`the sibling chain follows JSX order, not mount order`}
+      </BoxText>
+    </>
   );
 }
 
@@ -158,23 +192,35 @@ function PanelContent() {
           }}
         />
       </Box>
-      <Embed name="native-form" stackMode="vertical" position={{ y: 12 }} size={{ x: 170 }}>
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}
-        >
-          <input
-            placeholder="native input"
-            style={{ width: 110, fontSize: 11, padding: "3px 6px" }}
-          />
-          <button type="submit" style={{ fontSize: 11 }}>
-            {`Send`}
-          </button>
-        </form>
-      </Embed>
+      <Box name="native-form" stackMode="vertical" position={{ y: 12 }} size={{ x: 170 }}>
+        <Embed>
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}
+          >
+            <input
+              placeholder="native input"
+              style={{ width: 110, fontSize: 11, padding: "3px 6px" }}
+            />
+            <button type="submit" style={{ fontSize: 11 }}>
+              {`Send`}
+            </button>
+          </form>
+        </Embed>
+      </Box>
       <BoxText stackMode="vertical" position={{ x: 0, y: 4 }} font={{ size: 9, color: "#80868b" }}>
-        {`^ a raw <form> measured by <Embed>: it counts toward childTotals and this caption stacks below it`}
+        {`^ a raw <form> in an <Embed>, inside a Box of width 170: the form wraps there, the Box's height hugs it, and this caption stacks below`}
       </BoxText>
+      <Box name="native-buttons" stackMode="vertical" position={{ y: 8 }}>
+        <Embed>
+          <button style={{ fontSize: 11 }}>{`Add below`}</button>
+          <button style={{ fontSize: 11 }}>{`Delete`}</button>
+        </Embed>
+      </Box>
+      <BoxText stackMode="vertical" position={{ x: 0, y: 4 }} font={{ size: 9, color: "#80868b" }}>
+        {`^ <Embed> in a content-hugging Box: max-content, so the buttons stay on one line`}
+      </BoxText>
+      <InsertAbove />
       <BoxText
         stackMode="vertical"
         position={{ x: 0, y: 12 }}
